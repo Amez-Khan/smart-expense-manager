@@ -1,0 +1,35 @@
+{
+    "name": "smart_expense_manager",
+    "short_name": "smart_expense_manager",
+    "start_url": ".",
+    "display": "standalone",
+    "background_color": "#0175C2",
+    "theme_color": "#0175C2",
+    "description": "Smart Expense Manager – A production-style offline-first expense tracking mobile application built with Flutter and Firebase. The app follows a feature-based Clean Architecture with Bloc state management and implements a local-first data strategy using Hive with Firestore sync. Designed to simulate real-world scalable mobile architecture with authentication, expense analytics, and conflict-handled sync mechanism.",
+    "orientation": "portrait-primary",
+    "prefer_related_applications": false,
+    "icons": [
+        {
+            "src": "icons/Icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/Icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/Icon-maskable-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "icons/Icon-maskable-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ]
+}
