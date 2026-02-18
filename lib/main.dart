@@ -13,13 +13,17 @@ class SmartExpenseApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Smart Expense Manager',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        useMaterial3: true,
+        colorSchemeSeed: Colors.blue,
       ),
       home: const Scaffold(
         body: Center(
           child: Text(
             'Smart Expense Manager',
-            style: TextStyle(fontSize: 20),
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
       ),
