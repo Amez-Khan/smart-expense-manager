@@ -1,3 +1,10 @@
+// This plugin allows Android to read google-services.json
+// We set apply false because we only want to declare it here,
+// and actually apply it inside the app module.
+plugins {
+    id("com.google.gms.google-services") version "4.3.15" apply false
+}
+
 allprojects {
     repositories {
         google()
