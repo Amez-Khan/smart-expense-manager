@@ -1,4 +1,4 @@
-package com.amezkhan.smartexpensemanager.smart_expense_manager;
+package com.amezkhan.smartexpensemanager;
 
 import io.flutter.embedding.android.FlutterActivity;
 
