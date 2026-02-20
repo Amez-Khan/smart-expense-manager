@@ -1,113 +1,36 @@
-# Smart Expense Manager
+# Smart Expense Manager 💰
 
-Smart Expense Manager is an offline-first expense tracking mobile application built using Flutter and Firebase.
+A robust, production-grade Flutter application designed to help users track their personal finances with ease. Built with a focus on clean architecture, secure authentication, and a premium user experience.
 
-This project was developed to demonstrate scalable mobile architecture, structured state management, and real-world data handling practices.
+## ✨ Features (Phase 1: Authentication)
 
----
+This project currently features a complete, enterprise-level Firebase Authentication flow:
+* **Secure Registration & Login:** Email and password authentication powered by Firebase.
+* **Local Form Validation:** Regex-enforced strong passwords (minimum 8 characters, uppercase, and numbers) to prevent weak credentials before hitting the server.
+* **Mandatory Email Verification:** Protects the database from fraudulent accounts. Users are blocked by a reactive verification screen until they click the secure link sent to their inbox.
+* **Reactive Session Routing (`AuthGate`):** Utilizes Dart Streams (`FirebaseAuth.instance.userChanges()`) to automatically route users between the Login, Verification, and Dashboard screens without manual navigation pushing/popping.
+* **Graceful Error Handling:** Translates Firebase exception codes (like `email-already-in-use` or `too-many-requests`) into user-friendly UI SnackBars.
+* **Modern UI/UX:** Consistent, professional gradient styling with responsive loading states and clean text field components.
 
-## 🚀 Features
+## 🛠️ Tech Stack & Architecture
+* **Framework:** [Flutter](https://flutter.dev/) (Dart)
+* **Backend:** [Firebase Authentication](https://firebase.google.com/docs/auth)
+* **Architecture Pattern:** Feature-first folder structure with a dedicated Service Layer to separate UI logic from backend API calls.
 
-- User authentication using Firebase (Email & Password)
-- Add, edit, and delete expenses
-- Expense list with category support
-- Monthly expense summary
-- Offline-first data storage
-- Automatic sync with Firestore when internet is available
-- Clean and maintainable code structure
+## 📱 Screenshots
+> **Note to self:** Take a screenshot of your Login screen, Verify Email screen, and Dashboard using your phone or emulator. Save them in a folder called `assets/screenshots/` and uncomment the lines below to show them off!
 
----
+## 🚀 Getting Started
 
-## 🏗 Project Architecture
+If you want to clone this repository and run it locally, follow these steps:
 
-The project follows a feature-based clean architecture approach with clear separation of responsibilities:
+### Prerequisites
+* Install [Flutter](https://docs.flutter.dev/get-started/install)
+* Install [Firebase CLI](https://firebase.google.com/docs/cli)
+* Have an Android Emulator, iOS Simulator, or physical device ready.
 
-- **Presentation Layer** – UI and Bloc state management
-- **Domain Layer** – Business logic and repository contracts
-- **Data Layer** – Local (Hive) and Remote (Firestore) data sources
+### Installation
 
-Key patterns used:
-
-- Repository Pattern
-- Bloc for predictable state management
-- Dependency Injection (get_it)
-- Local-first data strategy
-
-The goal was to keep the code scalable, testable, and easy to maintain.
-
----
-
-## 🔄 Offline-First Strategy
-
-The app uses Hive for local storage.
-
-- Expenses are saved locally first.
-- If the device is online, data is synced to Firestore.
-- If offline, data is marked as pending.
-- When connectivity is restored, pending records are automatically synced.
-- Conflict resolution is handled using a simple timestamp-based approach (last write wins).
-
-This ensures a smooth user experience even without internet access.
-
----
-
-## 🛠 Tech Stack
-
-- Flutter
-- Firebase Authentication
-- Cloud Firestore
-- Hive (Local Storage)
-- flutter_bloc
-- get_it
-- connectivity_plus
-
----
-
-## 📂 Firestore Structure
-
-Data is stored using a user-based structure:
-
-users/{userId}/expenses/{expenseId}
-
-Each expense includes:
-
-- id
-- title
-- amount
-- category
-- date
-- updatedAt
-- syncStatus
-
----
-
-## 🎯 Purpose of This Project
-
-This project was built to practice and demonstrate:
-
-- Scalable Flutter architecture
-- State-driven UI design
-- Repository abstraction
-- Offline-first data handling
-- Clean code organization
-
----
-
-## 📌 Future Improvements
-
-- Budget planning feature
-- Expense export (CSV)
-- Improved sync optimization
-- Dark mode support
-- Expanded unit test coverage
-
----
-
-## 👨‍💻 Author
-
-Amez Khan  
-Flutter Developer
-
-## Project Path
-
-D:\FlutterLiveSource\Practice\smart_expense_manager
+1. **Clone the repository:**
+   ```bash
+   git clone [https://github.com/Amez-Khan/smart-expense-manager.git](https://github.com/Amez-Khan/smart-expense-manager.git)
