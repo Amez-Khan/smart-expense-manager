@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:smart_expense_manager/features/auth/presentation/pages/register_page.dart';
+import '../../services/auth_service.dart';
 import '../widget/auth_button.dart';
 import '../widget/auth_text_field.dart';
 
@@ -13,6 +15,51 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+
+  // 1. Add the service and a simple loading state
+  final _authService = AuthService();
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
+  // 2. Add the login logic
+  void _handleLogin() async {
+    // Basic validation to ensure fields aren't empty
+    if (emailController.text.isEmpty || passwordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter both email and password')),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      await _authService.signInWithEmailPassword(
+        emailController.text.trim(),
+        passwordController.text.trim(),
+      );
+      // Notice we don't need Navigator.push here!
+      // The AuthGate will automatically detect the login and send us to the Dashboard.
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString().replaceAll('Exception: ', '')),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -64,12 +111,21 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   const SizedBox(height: 24),
                   AuthButton(
-                    text: "Login",
-                    onPressed: () {},
+                    text: _isLoading ? "Logging in..." : "Login",
+                    onPressed: _isLoading ? () {} : _handleLogin,
                   ),
                   const SizedBox(height: 16),
                   TextButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      // ARCHITECT FIX: Clear text fields before leaving the screen
+                      emailController.clear();
+                      passwordController.clear();
+
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const RegisterPage()),
+                      );
+                    },
                     child: const Text("Create an account"),
                   )
                 ],

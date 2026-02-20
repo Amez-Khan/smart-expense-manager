@@ -5,6 +5,9 @@ class AuthTextField extends StatelessWidget {
   final IconData icon;
   final bool obscure;
   final TextEditingController controller;
+  // NEW: Added validator and keyboardType for production readiness
+  final String? Function(String?)? validator;
+  final TextInputType? keyboardType;
 
   const AuthTextField({
     super.key,
@@ -12,18 +15,25 @@ class AuthTextField extends StatelessWidget {
     required this.icon,
     required this.controller,
     this.obscure = false,
+    this.validator,
+    this.keyboardType,
   });
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
+    // CHANGED: TextField to TextFormField
+    return TextFormField(
       controller: controller,
       obscureText: obscure,
+      keyboardType: keyboardType,
+      validator: validator, // Hooking up the validator
+      autovalidateMode: AutovalidateMode.onUserInteraction, // Shows errors as they type
       decoration: InputDecoration(
         hintText: hint,
         prefixIcon: Icon(icon),
         filled: true,
-        fillColor: Colors.white,
+        // Changed to a very light grey so it stands out against the white card
+        fillColor: Colors.grey[100],
         contentPadding: const EdgeInsets.symmetric(vertical: 18),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
