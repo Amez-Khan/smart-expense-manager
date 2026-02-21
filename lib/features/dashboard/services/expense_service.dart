@@ -25,4 +25,40 @@ class ExpenseService {
       throw Exception('Failed to save expense: ${e.toString()}');
     }
   }
+
+  // NEW: Fetch a real-time stream of the user's expenses
+  Stream<List<ExpenseModel>> getUserExpenses() {
+    final user = _auth.currentUser;
+    if (user == null) throw Exception('User is not logged in');
+
+    return _db
+        .collection('users')
+        .doc(user.uid)
+        .collection('expenses')
+        .orderBy('date', descending: true) // Sort so the newest expenses are at the top
+        .snapshots() // This makes it a real-time stream!
+        .map((snapshot) {
+      // Convert the raw Firestore Maps back into our clean Dart Objects
+      return snapshot.docs.map((doc) => ExpenseModel.fromMap(doc.data())).toList();
+    });
+  }
+
+  // NEW: Delete an expense from the cloud
+  Future<void> deleteExpense(String expenseId) async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) throw Exception('User is not logged in');
+
+      // Point directly to the specific expense ID and call delete()
+      await _db
+          .collection('users')
+          .doc(user.uid)
+          .collection('expenses')
+          .doc(expenseId)
+          .delete();
+
+    } catch (e) {
+      throw Exception('Failed to delete expense: ${e.toString()}');
+    }
+  }
 }
