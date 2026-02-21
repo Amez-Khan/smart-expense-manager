@@ -5,13 +5,16 @@ class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   // Future function to handle registration
-  Future<User?> signUpWithEmailPassword(String email, String password) async {
+  Future<User?> signUpWithEmailPassword(String name, String email, String password) async {
     try {
       // This is the actual call to Firebase
       UserCredential credential = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
+
+      // ARCHITECT FIX: Save the user's name to their Firebase profile!
+      await credential.user?.updateDisplayName(name);
 
       // ARCHITECT FIX: Send verification email immediately after creation
       await credential.user?.sendEmailVerification();

@@ -41,6 +41,7 @@ class _RegisterPageState extends State<RegisterPage> {
       try {
         // Call the service with the text from the controllers
         final user = await _authService.signUpWithEmailPassword(
+          _nameController.text.trim(), // Pass the name here!
           _emailController.text.trim(),
           _passwordController.text.trim(),
         );

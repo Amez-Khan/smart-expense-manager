@@ -1,23 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+import '../widget/add_expense_bottom_sheet.dart';
+
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Grab the details of the user who is currently logged in
     final user = FirebaseAuth.instance.currentUser;
 
     return Scaffold(
-      // A very light grey background so future white expense cards will pop out
       backgroundColor: Colors.grey[50],
-
-      // The top navigation bar
       appBar: AppBar(
         elevation: 0,
         centerTitle: false,
-        // We use a flexibleSpace to give the AppBar our signature blue gradient
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
@@ -27,58 +24,91 @@ class DashboardPage extends StatelessWidget {
             ),
           ),
         ),
-        title: const Text(
-          'Smart Expense',
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Smart Expense',
+              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 20),
+            ),
+            Text(
+              "Welcome ${user?.displayName ?? "User"}",
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.8),
+                fontSize: 12,
+              ),
+            ),
+            /*Text(
+              user?.email ?? "",
+              style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 12),
+            ),*/
+          ],
         ),
         actions: [
-          // The logout button
           IconButton(
             icon: const Icon(Icons.logout_rounded, color: Colors.white),
             tooltip: 'Logout',
             onPressed: () async {
-              // This instantly signs the user out and the AuthGate takes them to the Login screen
               await FirebaseAuth.instance.signOut();
             },
           ),
-          const SizedBox(width: 8),
         ],
       ),
 
-      // The main content of the dashboard
-      body: Center(
+// NEW: Floating Action Button to add expenses
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          // ARCHITECT FIX: This opens our beautiful sliding bottom sheet
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true, // This allows the sheet to push up with the keyboard
+            backgroundColor: Colors.white,
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(top: Radius.circular(25.0)),
+            ),
+            builder: (context) => const AddExpenseBottomSheet(),
+          );
+        },
+        backgroundColor: const Color(0xFF2563EB),
+        icon: const Icon(Icons.add, color: Colors.white),
+        label: const Text("Add Expense", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+      ),
+
+      // NEW: The main list area
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // A simple wallet icon placeholder for now
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.account_balance_wallet_rounded, size: 60, color: Color(0xFF2563EB)),
-            ),
-            const SizedBox(height: 24),
-
             const Text(
-              'Welcome Back!',
-              style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A)),
-            ),
-            const SizedBox(height: 8),
-
-            // A small badge displaying the user's logged-in email address
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.grey.shade200),
+              "Recent Expenses",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1E3A8A),
               ),
-              // We use user?.email to show the email, or "Unknown User" if it's somehow missing
-              child: Text(
-                user?.email ?? "Unknown User",
-                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+            ),
+            const SizedBox(height: 16),
+
+            // For now, we show an empty state. Later, this will be a ListView!
+            Expanded(
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.receipt_long_outlined, size: 80, color: Colors.grey[300]),
+                    const SizedBox(height: 16),
+                    Text(
+                      "No expenses yet.",
+                      style: TextStyle(fontSize: 18, color: Colors.grey[500], fontWeight: FontWeight.w500),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      "Click the + button below to get started.",
+                      style: TextStyle(color: Colors.grey[400]),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
