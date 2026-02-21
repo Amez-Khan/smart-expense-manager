@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart'; // For formatting the date beautifully
+import 'package:smart_expense_manager/features/auth/presentation/pages/profile_page.dart';
 
+import '../../../../main.dart';
 import '../../../dashboard/models/expense_model.dart';
 import '../../../dashboard/services/expense_service.dart';
 import '../widget/add_expense_bottom_sheet.dart'; // Your exact path
@@ -76,48 +78,31 @@ class _DashboardPageState extends State<DashboardPage> {
               ),
             ),
             // Kept your exact Welcome User formatting
-            Text(
-              "Welcome ${user?.displayName ?? "User"}",
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.8),
-                fontSize: 12,
-              ),
+            StreamBuilder<User?>(
+              stream: FirebaseAuth.instance.authStateChanges(),
+              builder: (context, snapshot) {
+                final displayName = snapshot.data?.displayName ?? "User";
+                return Text(
+                  "Welcome $displayName",
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.8),
+                    fontSize: 12,
+                  ),
+                );
+              },
             ),
           ],
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout_rounded, color: Colors.white),
-            tooltip: 'Logout',
-            onPressed: () async {
-              // ARCHITECT FIX: Show a beautiful confirmation dialog before signing out
-              final bool? shouldLogout = await showDialog<bool>(
-                context: context,
-                builder: (BuildContext context) {
-                  return AlertDialog(
-                    title: const Text("Logout"),
-                    content: const Text("Are you sure you want to log out of Smart Expense?"),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    actions: [
-                      TextButton(
-                        // Returns 'false' so we do NOT log out
-                        onPressed: () => Navigator.of(context).pop(false),
-                        child: const Text("Cancel", style: TextStyle(color: Colors.grey)),
-                      ),
-                      TextButton(
-                        // Returns 'true' so we DO log out
-                        onPressed: () => Navigator.of(context).pop(true),
-                        child: const Text("Logout", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
-                      ),
-                    ],
-                  );
-                },
+            icon: const Icon(Icons.account_circle_outlined, color: Colors.white),
+            tooltip: 'Profile',
+            onPressed: () {
+              // Navigate to our new Profile Page
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ProfilePage()),
               );
-
-              // Only trigger Firebase SignOut if they actually clicked "Logout"
-              if (shouldLogout == true) {
-                await FirebaseAuth.instance.signOut();
-              }
             },
           ),
         ],
@@ -260,14 +245,14 @@ class _DashboardPageState extends State<DashboardPage> {
                         ), // Smaller font
                       ),
                       const SizedBox(height: 2), // Tighter gap
-                      Text(
-                        "\$${totalSpent.toStringAsFixed(2)}",
-                        // Reduced font size from 36 to 28
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      ValueListenableBuilder<String>(
+                        valueListenable: currencyNotifier,
+                        builder: (context, symbol, child) {
+                          return Text(
+                            "$symbol${totalSpent.toStringAsFixed(2)}",
+                            style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold),
+                          );
+                        },
                       ),
                     ],
                   ),
@@ -318,12 +303,16 @@ class _DashboardPageState extends State<DashboardPage> {
                                         fontWeight: FontWeight.w500,
                                       ),
                                     ),
-                                    Text(
-                                      "\$${categoryAmount.toStringAsFixed(2)}",
-                                      style: const TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+
+                                    //ValueListenableBuilder change the moment the user picks a new symbol
+                                    ValueListenableBuilder<String>(
+                                      valueListenable: currencyNotifier,
+                                      builder: (context, symbol, child) {
+                                        return Text(
+                                            "$symbol${categoryAmount.toStringAsFixed(2)}",
+                                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)
+                                        );
+                                      },
                                     ),
                                   ],
                                 ),
@@ -522,13 +511,14 @@ class _DashboardPageState extends State<DashboardPage> {
                                     fontSize: 11,
                                   ),
                                 ),
-                                trailing: Text(
-                                  '\$${expense.amount.toStringAsFixed(2)}',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 15,
-                                    color: Color(0xFF1E3A8A),
-                                  ),
+                                trailing: ValueListenableBuilder<String>(
+                                  valueListenable: currencyNotifier,
+                                  builder: (context, symbol, child) {
+                                    return Text(
+                                      '$symbol${expense.amount.toStringAsFixed(2)}',
+                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF1E3A8A)),
+                                    );
+                                  },
                                 ),
                               ),
                             ),

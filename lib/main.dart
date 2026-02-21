@@ -1,41 +1,76 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // [NEW] Added for memory storage
 
 import 'features/auth/presentation/pages/auth_gate.dart';
-import 'features/auth/presentation/pages/login_page.dart';
 import 'firebase_options.dart';
 
-// App entry point
-void main() async {
+// Global state variables - these "broadcast" changes to the whole app
+final ValueNotifier<String> currencyNotifier = ValueNotifier<String>('\$');
+final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier<ThemeMode>(ThemeMode.light);
 
-  // Required before using async code in main()
+// 1. App entry point
+void main() async {
+  // Required for Firebase and SharedPreferences to work properly
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 1. Connects app to Firebase project
+  // 2. Connect to Firebase
   await Firebase.initializeApp(
-  // 2. Initialize Firebase using the generated firebase_options.dart
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // Starts the main app widget
+  // 3. [NEW] Load saved settings from phone memory before the app starts
+  await _loadSavedSettings();
+
+  // 4. Start the app
   runApp(const SmartExpenseApp());
 }
 
+// Simple logic to read from storage
+Future<void> _loadSavedSettings() async {
+  final prefs = await SharedPreferences.getInstance();
+
+  // Get saved theme: if nothing is saved, default to false (Light Mode)
+  final bool isDark = prefs.getBool('isDarkMode') ?? false;
+  themeNotifier.value = isDark ? ThemeMode.dark : ThemeMode.light;
+
+  // Get saved currency: if nothing is saved, default to '$'
+  currencyNotifier.value = prefs.getString('currencySymbol') ?? '\$';
+}
+
+// Simple logic to save Theme
+Future<void> saveThemeToDisk(bool isDark) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setBool('isDarkMode', isDark);
+}
+
+// Simple logic to save Currency
+Future<void> saveCurrencyToDisk(String symbol) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setString('currencySymbol', symbol);
+}
 
 class SmartExpenseApp extends StatelessWidget {
   const SmartExpenseApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Smart Expense Manager',
-      theme: ThemeData(
-        useMaterial3: true,
-        colorSchemeSeed: Colors.blue,
-      ),
-      // Point to AuthGate instead of LoginPage
-      home: const AuthGate(),
+    // ValueListenableBuilder "listens" for theme changes and rebuilds the app UI
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: themeNotifier,
+      builder: (_, mode, __) {
+        return MaterialApp(
+          title: 'Smart Expense',
+          debugShowCheckedModeBanner: false,
+          themeMode: mode,
+          theme: ThemeData(
+            colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF1E3A8A)),
+            useMaterial3: true,
+          ),
+          darkTheme: ThemeData.dark(useMaterial3: true),
+          home: const AuthGate(),
+        );
+      },
     );
   }
 }
