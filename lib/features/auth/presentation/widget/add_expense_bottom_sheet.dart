@@ -4,7 +4,10 @@ import '../../../dashboard/services/expense_service.dart';
 
 
 class AddExpenseBottomSheet extends StatefulWidget {
-  const AddExpenseBottomSheet({super.key});
+// ARCHITECT FIX: Accept an optional expense. If it's null, we are creating. If it has data, we are editing!
+  final ExpenseModel? existingExpense;
+
+  const AddExpenseBottomSheet({super.key, this.existingExpense});
 
   @override
   State<AddExpenseBottomSheet> createState() => _AddExpenseBottomSheetState();
@@ -17,10 +20,20 @@ class _AddExpenseBottomSheetState extends State<AddExpenseBottomSheet> {
   DateTime _selectedDate = DateTime.now();
   final List<String> _categories = ['Food', 'Transport', 'Entertainment', 'Bills', 'Other'];
 
-  // 1. ARCHITECT FIX: Instantiate the service and add a loading state
   final ExpenseService _expenseService = ExpenseService();
   bool _isLoading = false;
 
+  // ARCHITECT FIX: Pre-fill the text fields if we are editing an existing expense!
+  @override
+  void initState() {
+    super.initState();
+    if (widget.existingExpense != null) {
+      _titleController.text = widget.existingExpense!.title;
+      _amountController.text = widget.existingExpense!.amount.toString();
+      _selectedCategory = widget.existingExpense!.category;
+      _selectedDate = widget.existingExpense!.date;
+    }
+  }
   @override
   void dispose() {
     _titleController.dispose();
@@ -63,29 +76,45 @@ class _AddExpenseBottomSheetState extends State<AddExpenseBottomSheet> {
     setState(() => _isLoading = true);
 
     try {
-      // 3. Generate a simple unique ID using the exact current time
-      final String uniqueId = DateTime.now().millisecondsSinceEpoch.toString();
-
-      // 4. Create the blueprint (Model)
-      final newExpense = ExpenseModel(
-        id: uniqueId,
-        title: _titleController.text.trim(),
-        amount: amount,
-        category: _selectedCategory,
-        date: _selectedDate,
-      );
-
-      // 5. Send it to the cloud pipeline (Service)
-      await _expenseService.addExpense(newExpense);
-
-      // 6. Success! Close the sheet and tell the user
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Expense added successfully!'), backgroundColor: Colors.green),
+      if (widget.existingExpense != null) {
+        // --- WE ARE EDITING ---
+        final updatedExpense = ExpenseModel(
+          id: widget.existingExpense!.id, // Keep the original ID!
+          title: _titleController.text.trim(),
+          amount: amount,
+          category: _selectedCategory,
+          date: _selectedDate,
         );
-        Navigator.pop(context); // Close the bottom sheet
+        await _expenseService.updateExpense(updatedExpense);
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Expense updated successfully!'), backgroundColor: Colors.green),
+          );
+        }
+      } else {
+        // --- WE ARE CREATING NEW ---
+        final String uniqueId = DateTime.now().millisecondsSinceEpoch.toString();
+        final newExpense = ExpenseModel(
+          id: uniqueId,
+          title: _titleController.text.trim(),
+          amount: amount,
+          category: _selectedCategory,
+          date: _selectedDate,
+        );
+        await _expenseService.addExpense(newExpense);
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Expense added successfully!'), backgroundColor: Colors.green),
+          );
+        }
       }
-    } catch (e) {
+
+      if (mounted) {
+        Navigator.pop(context); // Close the sheet
+      }}
+    catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
