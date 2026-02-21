@@ -90,7 +90,34 @@ class _DashboardPageState extends State<DashboardPage> {
             icon: const Icon(Icons.logout_rounded, color: Colors.white),
             tooltip: 'Logout',
             onPressed: () async {
-              await FirebaseAuth.instance.signOut();
+              // ARCHITECT FIX: Show a beautiful confirmation dialog before signing out
+              final bool? shouldLogout = await showDialog<bool>(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: const Text("Logout"),
+                    content: const Text("Are you sure you want to log out of Smart Expense?"),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    actions: [
+                      TextButton(
+                        // Returns 'false' so we do NOT log out
+                        onPressed: () => Navigator.of(context).pop(false),
+                        child: const Text("Cancel", style: TextStyle(color: Colors.grey)),
+                      ),
+                      TextButton(
+                        // Returns 'true' so we DO log out
+                        onPressed: () => Navigator.of(context).pop(true),
+                        child: const Text("Logout", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+                      ),
+                    ],
+                  );
+                },
+              );
+
+              // Only trigger Firebase SignOut if they actually clicked "Logout"
+              if (shouldLogout == true) {
+                await FirebaseAuth.instance.signOut();
+              }
             },
           ),
         ],
@@ -318,46 +345,53 @@ class _DashboardPageState extends State<DashboardPage> {
                   const SizedBox(height: 12), // Tighter gap
                 ],
 
-                // --- RECENT EXPENSES HEADER ---
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    const Text(
-                      "Recent Expenses",
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A)),
-                    ),
-
-                    // ARCHITECT FIX: Both icons side-by-side with their respective text!
-                    Row(
-                      children: [
-                        Icon(Icons.touch_app, size: 13, color: Colors.grey[500]),
-                        const SizedBox(width: 2),
-                        Text("Tap to edit  •  ", style: TextStyle(fontSize: 11, color: Colors.grey[500])),
-
-                        Icon(Icons.swipe_left, size: 13, color: Colors.grey[500]),
-                        const SizedBox(width: 2),
-                        Text("Swipe to delete", style: TextStyle(fontSize: 11, color: Colors.grey[500])),
-                      ],
-                    ),
-
-                  ],
-                ),
-                const SizedBox(height: 8), // Tighter gap
+                // ARCHITECT FIX: Only show headers and hints if there is data to interact with
+                if (expenses.isNotEmpty) ...[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      const Text(
+                        "Recent Expenses",
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A)),
+                      ),
+                      Row(
+                        children: [
+                          Icon(Icons.touch_app, size: 13, color: Colors.grey[500]),
+                          const SizedBox(width: 2),
+                          Text("Tap to edit  •  ", style: TextStyle(fontSize: 11, color: Colors.grey[500])),
+                          Icon(Icons.swipe_left, size: 13, color: Colors.grey[500]),
+                          const SizedBox(width: 2),
+                          Text("Swipe to delete", style: TextStyle(fontSize: 11, color: Colors.grey[500])),
+                        ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                ], // Tighter gap
                 // --- EXPENSE LIST ---
                 // ARCHITECT FIX: Removed 'Expanded' and added shrinkWrap so it works inside SingleChildScrollView
                 expenses.isEmpty
-                    ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const SizedBox(height: 32), // Extra padding since Expanded is gone
-                      Icon(Icons.receipt_long_outlined, size: 80, color: Colors.grey[300]),
-                      const SizedBox(height: 16),
-                      Text("No expenses yet.", style: TextStyle(fontSize: 18, color: Colors.grey[500], fontWeight: FontWeight.w500)),
-                      const SizedBox(height: 8),
-                      Text("Click the + button below to get started.", style: TextStyle(color: Colors.grey[400])),
-                    ],
+                    ? SizedBox(
+                  // ARCHITECT FIX: Dynamically fill the remaining vertical space
+                  height: MediaQuery.of(context).size.height * 0.4,
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.receipt_long_outlined, size: 80, color: Colors.grey[300]),
+                        const SizedBox(height: 16),
+                        Text(
+                            "No expenses yet.",
+                            style: TextStyle(fontSize: 18, color: Colors.grey[500], fontWeight: FontWeight.w500)
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                            "Click the + button below to get started.",
+                            style: TextStyle(color: Colors.grey[400])
+                        ),
+                      ],
+                    ),
                   ),
                 )
                     :ListView.builder(
