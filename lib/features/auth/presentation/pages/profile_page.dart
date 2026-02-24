@@ -70,8 +70,14 @@ class ProfilePage extends StatelessWidget {
                 ),
                 // ARCHITECT FIX: Added a Switch to toggle Dark Mode
                 ListTile(
-                  leading: const Icon(Icons.dark_mode, color: Color(0xFF1E3A8A)),
-                  title: const Text("Dark Mode", style: TextStyle(fontWeight: FontWeight.w500)),
+                  leading: const Icon(
+                    Icons.dark_mode,
+                    color: Color(0xFF1E3A8A),
+                  ),
+                  title: const Text(
+                    "Dark Mode",
+                    style: TextStyle(fontWeight: FontWeight.w500),
+                  ),
                   trailing: ValueListenableBuilder<ThemeMode>(
                     valueListenable: themeNotifier,
                     builder: (context, mode, child) {
@@ -79,7 +85,9 @@ class ProfilePage extends StatelessWidget {
                         value: mode == ThemeMode.dark,
                         onChanged: (bool value) {
                           // Update the UI immediately
-                          themeNotifier.value = value ? ThemeMode.dark : ThemeMode.light;
+                          themeNotifier.value = value
+                              ? ThemeMode.dark
+                              : ThemeMode.light;
 
                           // [NEW] Save the choice to phone memory
                           saveThemeToDisk(value);
@@ -89,7 +97,13 @@ class ProfilePage extends StatelessWidget {
                     },
                   ),
                 ),
-                _buildProfileItem(Icons.help_outline, "Help & Support", () {}),
+                _buildProfileItem(
+                  Icons.help_outline,
+                  "Help & Support",
+                  () => _showHelpSupportBottomSheet(
+                    context,
+                  ), // [NEW] Calls your new function!
+                ),
                 // Wrap the item in a listener so it updates instantly!
                 ValueListenableBuilder<String>(
                   valueListenable: currencyNotifier,
@@ -97,7 +111,7 @@ class ProfilePage extends StatelessWidget {
                     return _buildProfileItem(
                       Icons.payments_outlined,
                       "Change Currency ($currency)",
-                          () => _showCurrencyPicker(context),
+                      () => _showCurrencyPicker(context),
                     );
                   },
                 ),
@@ -213,10 +227,12 @@ class ProfilePage extends StatelessWidget {
 
   void _showCurrencyPicker(BuildContext context) {
     final List<String> currencies = ['\$', '₹', '€', '£', '¥', '₩'];
-
+    // 1. [NEW] Check the current theme brightness
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      // 2. [FIX] Swap background color based on theme
+      backgroundColor: isDark ? Colors.grey[900] : Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
       ),
@@ -230,14 +246,20 @@ class ProfilePage extends StatelessWidget {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey[300],
+                // 3. [FIX] Darker handle bar in dark mode
+                color: isDark ? Colors.grey[700] : Colors.grey[300],
                 borderRadius: BorderRadius.circular(10),
               ),
             ),
             const SizedBox(height: 20),
-            const Text(
-                "Select Currency",
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A))
+            Text(
+              "Select Currency",
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight
+                    .bold, // 4. [FIX] White text in dark mode, blue in light mode
+                color: isDark ? Colors.white : const Color(0xFF1E3A8A),
+              ),
             ),
             const SizedBox(height: 24),
 
@@ -279,10 +301,20 @@ class ProfilePage extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                   child: Container(
                     decoration: BoxDecoration(
-                      color: isSelected ? const Color(0xFF2563EB).withOpacity(0.1) : Colors.grey[50],
+                      // 5. [FIX] Dynamic background colors for the grid buttons
+                      color: isSelected
+                          ? (isDark
+                                ? const Color(0xFF2563EB).withOpacity(0.2)
+                                : const Color(0xFF2563EB).withOpacity(0.1))
+                          : (isDark ? Colors.grey[800] : Colors.grey[50]),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: isSelected ? const Color(0xFF2563EB) : Colors.grey[200]!,
+                        // 6. [FIX] Dynamic border colors
+                        color: isSelected
+                            ? (isDark
+                                  ? Colors.blue[300]!
+                                  : const Color(0xFF2563EB))
+                            : (isDark ? Colors.grey[700]! : Colors.grey[200]!),
                         width: 1.5,
                       ),
                     ),
@@ -291,8 +323,15 @@ class ProfilePage extends StatelessWidget {
                         symbol,
                         style: TextStyle(
                           fontSize: 20,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                          color: isSelected ? const Color(0xFF2563EB) : Colors.black87,
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                          // 7. [FIX] Dynamic text colors for the symbols
+                          color: isSelected
+                              ? (isDark
+                                    ? Colors.blue[300]
+                                    : const Color(0xFF2563EB))
+                              : (isDark ? Colors.white : Colors.black87),
                         ),
                       ),
                     ),
@@ -303,6 +342,187 @@ class ProfilePage extends StatelessWidget {
             const SizedBox(height: 16),
           ],
         ),
+      ),
+    );
+  }
+
+  // --- NEW: Help & Support Bottom Sheet (Dark Mode Ready) ---
+  void _showHelpSupportBottomSheet(BuildContext context) {
+    // 1. Check the current theme brightness
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      // 2. Swap background color based on theme
+      backgroundColor: isDark ? Colors.grey[900] : Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+      ),
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.6,
+        minChildSize: 0.4,
+        maxChildSize: 0.9,
+        expand: false,
+        builder: (_, scrollController) {
+          return Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: ListView(
+              controller: scrollController,
+              children: [
+                // Handle bar
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: isDark ? Colors.grey[700] : Colors.grey[300],
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                Text(
+                  "Help & Support",
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    // Swap the dark blue for pure white in Dark Mode
+                    color: isDark ? Colors.white : const Color(0xFF1E3A8A),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  "How can we help you manage your expenses today?",
+                  style: TextStyle(
+                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                Text(
+                  "Frequently Asked Questions",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                // FAQ 1
+                ExpansionTile(
+                  iconColor: isDark
+                      ? Colors.blue[300]
+                      : const Color(0xFF2563EB),
+                  textColor: isDark
+                      ? Colors.blue[300]
+                      : const Color(0xFF2563EB),
+                  collapsedIconColor: isDark ? Colors.white70 : Colors.black54,
+                  collapsedTextColor: isDark ? Colors.white : Colors.black87,
+                  title: const Text(
+                    "How do I edit or delete an expense?",
+                    style: TextStyle(fontWeight: FontWeight.w500),
+                  ),
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Text(
+                        "On the Dashboard, tap any expense to edit it. To delete an expense, simply swipe the expense card to the left.",
+                        style: TextStyle(
+                          color: isDark ? Colors.grey[300] : Colors.grey[700],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
+                // FAQ 2
+                ExpansionTile(
+                  iconColor: isDark
+                      ? Colors.blue[300]
+                      : const Color(0xFF2563EB),
+                  textColor: isDark
+                      ? Colors.blue[300]
+                      : const Color(0xFF2563EB),
+                  collapsedIconColor: isDark ? Colors.white70 : Colors.black54,
+                  collapsedTextColor: isDark ? Colors.white : Colors.black87,
+                  title: const Text(
+                    "Will my data sync if I get a new phone?",
+                    style: TextStyle(fontWeight: FontWeight.w500),
+                  ),
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Text(
+                        "Yes! All your expenses, your monthly budget, and your currency preferences are securely backed up to your account. Just log in with your email on any device.",
+                        style: TextStyle(
+                          color: isDark ? Colors.grey[300] : Colors.grey[700],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 24),
+                Divider(color: isDark ? Colors.grey[800] : Colors.grey[300]),
+                const SizedBox(height: 16),
+
+                // Contact Section
+                Text(
+                  "Still need help?",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: CircleAvatar(
+                    backgroundColor: isDark
+                        ? const Color(0xFF2563EB).withOpacity(0.2)
+                        : Colors.blue.withOpacity(0.1),
+                    child: Icon(
+                      Icons.email_outlined,
+                      color: isDark
+                          ? Colors.blue[300]
+                          : const Color(0xFF2563EB),
+                    ),
+                  ),
+                  title: Text(
+                    "Email Support",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : Colors.black87,
+                    ),
+                  ),
+                  subtitle: Text(
+                    "support@smartexpense.com",
+                    style: TextStyle(
+                      color: isDark ? Colors.grey[400] : Colors.grey[600],
+                    ),
+                  ),
+                  trailing: Icon(
+                    Icons.arrow_forward_ios,
+                    size: 16,
+                    color: isDark ? Colors.white54 : Colors.black54,
+                  ),
+                  onTap: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("Email client integration coming soon!"),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }

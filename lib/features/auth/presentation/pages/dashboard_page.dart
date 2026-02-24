@@ -60,7 +60,8 @@ class _DashboardPageState extends State<DashboardPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("Set Monthly Budget", style: TextStyle(color: Color(0xFF1E3A8A))),
+        // [FIX] Let Flutter handle the default text color based on the theme!
+        title: const Text("Set Monthly Budget", style: TextStyle(fontWeight: FontWeight.bold)),
         content: TextField(
           controller: budgetController,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -69,7 +70,13 @@ class _DashboardPageState extends State<DashboardPage> {
             // Dynamically show the correct currency symbol!
             prefixIcon: Padding(
               padding: const EdgeInsets.all(12.0),
-              child: Text(currencyNotifier.value, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              child: Text(
+                currencyNotifier.value,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
           ),
@@ -83,7 +90,9 @@ class _DashboardPageState extends State<DashboardPage> {
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF2563EB),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
             onPressed: () async {
               final newBudget = double.tryParse(budgetController.text) ?? 0.0;
@@ -102,7 +111,10 @@ class _DashboardPageState extends State<DashboardPage> {
                 Navigator.pop(context);
               }
             },
-            child: const Text("Save Goal", style: TextStyle(color: Colors.white)),
+            child: const Text(
+              "Save Goal",
+              style: TextStyle(color: Colors.white),
+            ),
           ),
         ],
       ),
@@ -112,9 +124,11 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
-
+    // [NEW] 1. Check if we are in Dark Mode
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      // [FIX] 2. Dynamic background color
+      backgroundColor: isDark ? const Color(0xFF121212) : Colors.grey[50],
       appBar: AppBar(
         elevation: 0,
         centerTitle: false,
@@ -156,7 +170,10 @@ class _DashboardPageState extends State<DashboardPage> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.account_circle_outlined, color: Colors.white),
+            icon: const Icon(
+              Icons.account_circle_outlined,
+              color: Colors.white,
+            ),
             tooltip: 'Profile',
             onPressed: () {
               // Navigate to our new Profile Page
@@ -176,7 +193,7 @@ class _DashboardPageState extends State<DashboardPage> {
           showModalBottomSheet(
             context: context,
             isScrollControlled: true,
-            backgroundColor: Colors.white,
+            // backgroundColor: Colors.white,
             shape: const RoundedRectangleBorder(
               borderRadius: BorderRadius.vertical(top: Radius.circular(25.0)),
             ),
@@ -240,30 +257,35 @@ class _DashboardPageState extends State<DashboardPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // --- NEW: MONTH SELECTOR UI ---
+                // --- UPGRADED: MONTH SELECTOR UI ---
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     IconButton(
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.chevron_left,
-                        color: Color(0xFF1E3A8A),
+                        color: isDark
+                            ? Colors.white
+                            : const Color(0xFF1E3A8A), // [FIX]
                       ),
                       onPressed: () => _changeMonth(-1),
                     ),
                     Text(
-                      // Uses the intl package to format beautifully (e.g. "February 2026")
                       DateFormat('MMMM yyyy').format(_selectedMonth),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF1E3A8A),
+                        color: isDark
+                            ? Colors.white
+                            : const Color(0xFF1E3A8A), // [FIX]
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.chevron_right,
-                        color: Color(0xFF1E3A8A),
+                        color: isDark
+                            ? Colors.white
+                            : const Color(0xFF1E3A8A), // [FIX]
                       ),
                       onPressed: () => _changeMonth(1),
                     ),
@@ -273,7 +295,10 @@ class _DashboardPageState extends State<DashboardPage> {
                 // --- UPGRADED TOTAL SPENT CARD WITH BUDGET ---
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 16,
+                  ),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
                       colors: [Color(0xFF1E3A8A), Color(0xFF2563EB)],
@@ -282,21 +307,28 @@ class _DashboardPageState extends State<DashboardPage> {
                     ),
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
-                      BoxShadow(color: Colors.blue.withOpacity(0.3), blurRadius: 15, offset: const Offset(0, 8)),
+                      BoxShadow(
+                        color: Colors.blue.withOpacity(0.3),
+                        blurRadius: 15,
+                        offset: const Offset(0, 8),
+                      ),
                     ],
                   ),
                   child: ValueListenableBuilder<double>(
                     valueListenable: budgetNotifier,
                     builder: (context, budget, child) {
-
                       // Calculate progress (cap at 1.0 or 100%)
-                      double progress = budget > 0 ? (totalSpent / budget) : 0.0;
+                      double progress = budget > 0
+                          ? (totalSpent / budget)
+                          : 0.0;
                       if (progress > 1.0) progress = 1.0;
 
                       // Smart Colors: Green (<75%), Orange (75-90%), Red (>90%)
                       Color progressColor = Colors.greenAccent;
-                      if (progress > 0.9) progressColor = Colors.redAccent;
-                      else if (progress > 0.75) progressColor = Colors.orangeAccent;
+                      if (progress > 0.9)
+                        progressColor = Colors.redAccent;
+                      else if (progress > 0.75)
+                        progressColor = Colors.orangeAccent;
 
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -306,26 +338,42 @@ class _DashboardPageState extends State<DashboardPage> {
                             children: [
                               Text(
                                 "Total Spent",
-                                style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 14),
+                                style: TextStyle(
+                                  color: Colors.white.withOpacity(0.8),
+                                  fontSize: 14,
+                                ),
                               ),
                               // Small edit button to set the budget
                               InkWell(
                                 onTap: () => _showEditBudgetDialog(context),
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
                                   decoration: BoxDecoration(
-                                      color: Colors.white.withOpacity(0.2),
-                                      borderRadius: BorderRadius.circular(12)
+                                    color: Colors.white.withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: Row(
                                     children: [
-                                      Icon(budget > 0 ? Icons.edit : Icons.add, color: Colors.white, size: 14),
+                                      Icon(
+                                        budget > 0 ? Icons.edit : Icons.add,
+                                        color: Colors.white,
+                                        size: 14,
+                                      ),
                                       const SizedBox(width: 4),
-                                      Text(budget > 0 ? "Edit Goal" : "Set Budget", style: const TextStyle(color: Colors.white, fontSize: 12)),
+                                      Text(
+                                        budget > 0 ? "Edit Goal" : "Set Budget",
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                        ),
+                                      ),
                                     ],
                                   ),
                                 ),
-                              )
+                              ),
                             ],
                           ),
                           const SizedBox(height: 2),
@@ -335,7 +383,11 @@ class _DashboardPageState extends State<DashboardPage> {
                             builder: (context, symbol, child) {
                               return Text(
                                 "$symbol${totalSpent.toStringAsFixed(2)}",
-                                style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               );
                             },
                           ),
@@ -346,10 +398,21 @@ class _DashboardPageState extends State<DashboardPage> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text("Budget: ${currencyNotifier.value}${budget.toStringAsFixed(0)}",
-                                    style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 12)),
-                                Text("${(progress * 100).toStringAsFixed(0)}%",
-                                    style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+                                Text(
+                                  "Budget: ${currencyNotifier.value}${budget.toStringAsFixed(0)}",
+                                  style: TextStyle(
+                                    color: Colors.white.withOpacity(0.8),
+                                    fontSize: 12,
+                                  ),
+                                ),
+                                Text(
+                                  "${(progress * 100).toStringAsFixed(0)}%",
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                               ],
                             ),
                             const SizedBox(height: 8),
@@ -362,7 +425,7 @@ class _DashboardPageState extends State<DashboardPage> {
                                 minHeight: 6,
                               ),
                             ),
-                          ]
+                          ],
                         ],
                       );
                     },
@@ -420,8 +483,11 @@ class _DashboardPageState extends State<DashboardPage> {
                                       valueListenable: currencyNotifier,
                                       builder: (context, symbol, child) {
                                         return Text(
-                                            "$symbol${categoryAmount.toStringAsFixed(2)}",
-                                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)
+                                          "$symbol${categoryAmount.toStringAsFixed(2)}",
+                                          style: const TextStyle(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.bold,
+                                          ),
                                         );
                                       },
                                     ),
@@ -430,7 +496,10 @@ class _DashboardPageState extends State<DashboardPage> {
                                 const SizedBox(height: 4),
                                 LinearProgressIndicator(
                                   value: percentage,
-                                  backgroundColor: Colors.grey[200],
+                                  // [FIX] Darker track color for Dark Mode
+                                  backgroundColor: isDark
+                                      ? Colors.grey[800]
+                                      : Colors.grey[200],
                                   color: const Color(0xFF2563EB),
                                   minHeight: 4, // Thinner progress bar
                                   borderRadius: BorderRadius.circular(10),
@@ -451,18 +520,44 @@ class _DashboardPageState extends State<DashboardPage> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      const Text(
+                      Text(
                         "Recent Expenses",
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A)),
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: isDark
+                              ? Colors.white
+                              : const Color(0xFF1E3A8A), // [FIX]
+                        ),
                       ),
                       Row(
                         children: [
-                          Icon(Icons.touch_app, size: 13, color: Colors.grey[500]),
+                          Icon(
+                            Icons.touch_app,
+                            size: 13,
+                            color: Colors.grey[500],
+                          ),
                           const SizedBox(width: 2),
-                          Text("Tap to edit  •  ", style: TextStyle(fontSize: 11, color: Colors.grey[500])),
-                          Icon(Icons.swipe_left, size: 13, color: Colors.grey[500]),
+                          Text(
+                            "Tap to edit  •  ",
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.grey[500],
+                            ),
+                          ),
+                          Icon(
+                            Icons.swipe_left,
+                            size: 13,
+                            color: Colors.grey[500],
+                          ),
                           const SizedBox(width: 2),
-                          Text("Swipe to delete", style: TextStyle(fontSize: 11, color: Colors.grey[500])),
+                          Text(
+                            "Swipe to delete",
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.grey[500],
+                            ),
+                          ),
                         ],
                       ),
                     ],
@@ -473,36 +568,46 @@ class _DashboardPageState extends State<DashboardPage> {
                 // ARCHITECT FIX: Removed 'Expanded' and added shrinkWrap so it works inside SingleChildScrollView
                 expenses.isEmpty
                     ? SizedBox(
-                  // ARCHITECT FIX: Dynamically fill the remaining vertical space
-                  height: MediaQuery.of(context).size.height * 0.4,
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.receipt_long_outlined, size: 80, color: Colors.grey[300]),
-                        const SizedBox(height: 16),
-                        Text(
-                            "No expenses yet.",
-                            style: TextStyle(fontSize: 18, color: Colors.grey[500], fontWeight: FontWeight.w500)
+                        // ARCHITECT FIX: Dynamically fill the remaining vertical space
+                        height: MediaQuery.of(context).size.height * 0.4,
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.receipt_long_outlined,
+                                size: 80,
+                                color: Colors.grey[300],
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                "No expenses yet.",
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.grey[500],
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                "Click the + button below to get started.",
+                                style: TextStyle(color: Colors.grey[400]),
+                              ),
+                            ],
+                          ),
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                            "Click the + button below to get started.",
-                            style: TextStyle(color: Colors.grey[400])
-                        ),
-                      ],
-                    ),
-                  ),
-                )
-                    :ListView.builder(
-                  shrinkWrap: true, // MUST HAVE THIS inside SingleChildScrollView
-                  physics: const NeverScrollableScrollPhysics(), // Disables inner scrolling so the whole page scrolls together
-                  itemCount: expenses.length,
-                  itemBuilder: (context, index) {
-                    final expense = expenses[index];
-                    return Dismissible(
-                      key: Key(expense.id),
-                      direction: DismissDirection.endToStart,
+                      )
+                    : ListView.builder(
+                        shrinkWrap:
+                            true, // MUST HAVE THIS inside SingleChildScrollView
+                        physics:
+                            const NeverScrollableScrollPhysics(), // Disables inner scrolling so the whole page scrolls together
+                        itemCount: expenses.length,
+                        itemBuilder: (context, index) {
+                          final expense = expenses[index];
+                          return Dismissible(
+                            key: Key(expense.id),
+                            direction: DismissDirection.endToStart,
                             background: Container(
                               alignment: Alignment.centerRight,
                               padding: const EdgeInsets.only(right: 20),
@@ -535,9 +640,7 @@ class _DashboardPageState extends State<DashboardPage> {
                                             Navigator.of(context).pop(false),
                                         child: const Text(
                                           "Cancel",
-                                          style: TextStyle(
-                                            color: Colors.grey,
-                                          ),
+                                          style: TextStyle(color: Colors.grey),
                                         ),
                                       ),
                                       TextButton(
@@ -569,6 +672,8 @@ class _DashboardPageState extends State<DashboardPage> {
                             },
                             child: Card(
                               elevation: 0,
+                              // [FIX] Explicitly set dark mode card color to stand out from background
+                              color: isDark ? Colors.grey[900] : Colors.white,
                               margin: const EdgeInsets.only(
                                 bottom: 8,
                               ), // Reduced card margin from 12 to 8
@@ -576,7 +681,11 @@ class _DashboardPageState extends State<DashboardPage> {
                                 borderRadius: BorderRadius.circular(
                                   12,
                                 ), // Slightly smaller radius
-                                side: BorderSide(color: Colors.grey.shade200),
+                                side: BorderSide(
+                                  color: isDark
+                                      ? Colors.grey[800]!
+                                      : Colors.grey.shade200,
+                                ),
                               ),
                               child: ListTile(
                                 // --- NEW: Tap to Edit ---
@@ -586,10 +695,14 @@ class _DashboardPageState extends State<DashboardPage> {
                                     isScrollControlled: true,
                                     // backgroundColor: Colors.white,
                                     shape: const RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.vertical(top: Radius.circular(25.0)),
+                                      borderRadius: BorderRadius.vertical(
+                                        top: Radius.circular(25.0),
+                                      ),
                                     ),
                                     // Pass the clicked expense into the sheet!
-                                    builder: (context) => AddExpenseBottomSheet(existingExpense: expense),
+                                    builder: (context) => AddExpenseBottomSheet(
+                                      existingExpense: expense,
+                                    ),
                                   );
                                 },
                                 contentPadding: const EdgeInsets.symmetric(
@@ -597,9 +710,7 @@ class _DashboardPageState extends State<DashboardPage> {
                                   vertical: 4,
                                 ), // Tighter inner padding
                                 leading: CircleAvatar(
-                                  backgroundColor: Colors.blue.withOpacity(
-                                    0.1,
-                                  ),
+                                  backgroundColor: Colors.blue.withOpacity(0.1),
                                   child: Icon(
                                     _getCategoryIcon(expense.category),
                                     size: 20,
@@ -627,7 +738,14 @@ class _DashboardPageState extends State<DashboardPage> {
                                   builder: (context, symbol, child) {
                                     return Text(
                                       '$symbol${expense.amount.toStringAsFixed(2)}',
-                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF1E3A8A)),
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 15,
+                                        // [FIX] Lighter blue in Dark Mode so it is readable
+                                        color: isDark
+                                            ? Colors.blue[300]
+                                            : const Color(0xFF1E3A8A),
+                                      ),
                                     );
                                   },
                                 ),
