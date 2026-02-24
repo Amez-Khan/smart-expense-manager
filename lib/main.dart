@@ -1,13 +1,17 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // [NEW] Added for memory storage
 
 import 'features/auth/presentation/pages/auth_gate.dart';
+import 'features/dashboard/services/user_service.dart';
 import 'firebase_options.dart';
 
 // Global state variables - these "broadcast" changes to the whole app
 final ValueNotifier<String> currencyNotifier = ValueNotifier<String>('\$');
-final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier<ThemeMode>(ThemeMode.light);
+final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier<ThemeMode>(
+  ThemeMode.light,
+);
 
 // 1. App entry point
 void main() async {
@@ -15,15 +19,16 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // 2. Connect to Firebase
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   // 3. [NEW] Load saved settings from phone memory before the app starts
   await _loadSavedSettings();
 
   // 4. Start the app
   runApp(const SmartExpenseApp());
+
+  //Update & Fetch selected currency on firestore.
+  _listenToAuthChanges();
 }
 
 // Simple logic to read from storage
@@ -50,6 +55,24 @@ Future<void> saveCurrencyToDisk(String symbol) async {
   await prefs.setString('currencySymbol', symbol);
 }
 
+//Update & Fetch selected currency on firestore.
+void _listenToAuthChanges() {
+  FirebaseAuth.instance.authStateChanges().listen((User? user) async {
+    if (user != null) {
+      // User logged in! Fetch their cloud currency.
+      final cloudCurrency = await UserService().getUserCurrency();
+
+      if (cloudCurrency != null) {
+        // Update the global notifier so the whole app reacts instantly
+        currencyNotifier.value = cloudCurrency;
+      }
+    } else {
+      // User logged out! Reset to a safe default so the next user doesn't see it.
+      currencyNotifier.value = '\$';
+    }
+  });
+}
+
 class SmartExpenseApp extends StatelessWidget {
   const SmartExpenseApp({super.key});
 
@@ -64,7 +87,9 @@ class SmartExpenseApp extends StatelessWidget {
           debugShowCheckedModeBanner: false,
           themeMode: mode,
           theme: ThemeData(
-            colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF1E3A8A)),
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: const Color(0xFF1E3A8A),
+            ),
             useMaterial3: true,
           ),
           darkTheme: ThemeData.dark(useMaterial3: true),

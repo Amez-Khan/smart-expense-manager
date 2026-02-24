@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../../../main.dart';
+import '../../../dashboard/services/user_service.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -89,10 +90,16 @@ class ProfilePage extends StatelessWidget {
                   ),
                 ),
                 _buildProfileItem(Icons.help_outline, "Help & Support", () {}),
-                _buildProfileItem(
-                    Icons.payments_outlined,
-                    "Change Currency (${currencyNotifier.value})",
-                        () => _showCurrencyPicker(context)
+                // Wrap the item in a listener so it updates instantly!
+                ValueListenableBuilder<String>(
+                  valueListenable: currencyNotifier,
+                  builder: (context, currency, child) {
+                    return _buildProfileItem(
+                      Icons.payments_outlined,
+                      "Change Currency ($currency)",
+                          () => _showCurrencyPicker(context),
+                    );
+                  },
                 ),
                 const Divider(),
                 _buildProfileItem(
@@ -250,15 +257,24 @@ class ProfilePage extends StatelessWidget {
                 final isSelected = currencyNotifier.value == symbol;
 
                 return InkWell(
-                  onTap: () {
-                    // 1. Update the UI symbol
+                  onTap: () async {
+                    // 2. Update the UI symbol instantly (Optimistic UI)
                     currencyNotifier.value = symbol;
 
-                    // 2. [NEW] Save the symbol to phone memory
+                    // 3. Save the symbol to phone memory (Local backup)
                     saveCurrencyToDisk(symbol);
 
-                    // 3. Close the bottom sheet
-                    Navigator.pop(context);
+                    // 4. [NEW] Save to Firestore silently in the background!
+                    try {
+                      await UserService().updateCurrency(symbol);
+                    } catch (e) {
+                      print("Failed to sync currency to cloud: $e");
+                    }
+
+                    // 5. Close the bottom sheet safely
+                    if (context.mounted) {
+                      Navigator.pop(context);
+                    }
                   },
                   borderRadius: BorderRadius.circular(12),
                   child: Container(

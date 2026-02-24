@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../main.dart';
 import '../../../dashboard/models/expense_model.dart';
 import '../../../dashboard/services/expense_service.dart';
 
@@ -131,6 +132,9 @@ class _AddExpenseBottomSheetState extends State<AddExpenseBottomSheet> {
   Widget build(BuildContext context) {
     final keyboardSpace = MediaQuery.of(context).viewInsets.bottom;
 
+    // [NEW] Check if the app is currently in Dark Mode
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return SingleChildScrollView(
       child: Padding(
         padding: EdgeInsets.only(
@@ -146,9 +150,14 @@ class _AddExpenseBottomSheetState extends State<AddExpenseBottomSheet> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'Add New Expense',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A)),
+                Text(
+                  // [FIX] Update title: White in Dark Mode, Blue in Light Mode
+                  widget.existingExpense != null ? 'Edit Expense' : 'Add New Expense',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : const Color(0xFF1E3A8A),
+                  ),
                 ),
                 IconButton(
                   icon: const Icon(Icons.close, color: Colors.grey),
@@ -168,14 +177,19 @@ class _AddExpenseBottomSheetState extends State<AddExpenseBottomSheet> {
             ),
             const SizedBox(height: 16),
 
-            TextField(
-              controller: _amountController,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              decoration: InputDecoration(
-                labelText: 'Amount (\$)',
-                prefixIcon: const Icon(Icons.attach_money),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              ),
+            ValueListenableBuilder<String>(
+              valueListenable: currencyNotifier,
+              builder: (context, currency, child) {
+                return TextField(
+                  controller: _amountController,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  decoration: InputDecoration(
+                    labelText: 'Amount ($currency)', // Dynamically shows (₹), (€), etc.
+                    prefixIcon: const Icon(Icons.payments), // Generic cash icon instead of $
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                );
+              },
             ),
             const SizedBox(height: 24),
 
@@ -184,18 +198,25 @@ class _AddExpenseBottomSheetState extends State<AddExpenseBottomSheet> {
             Wrap(
               spacing: 8.0,
               children: _categories.map((category) {
+                final isSelected = _selectedCategory == category;
                 return ChoiceChip(
                   label: Text(category),
-                  selected: _selectedCategory == category,
+                  selected: isSelected,
                   onSelected: (selected) {
                     setState(() {
                       _selectedCategory = category;
                     });
                   },
-                  selectedColor: Colors.blue.withOpacity(0.2),
+                  // [FIX] Dynamic chip background colors
+                  selectedColor: isDark ? const Color(0xFF2563EB) : Colors.blue.withOpacity(0.2),
+                  backgroundColor: isDark ? Colors.grey[800] : Colors.grey[200],
+                  side: BorderSide.none, // Removes default weird borders
+                  // [FIX] Dynamic text colors so they are always readable
                   labelStyle: TextStyle(
-                    color: _selectedCategory == category ? const Color(0xFF1E3A8A) : Colors.black,
-                    fontWeight: _selectedCategory == category ? FontWeight.bold : FontWeight.normal,
+                    color: isSelected
+                        ? (isDark ? Colors.white : const Color(0xFF1E3A8A))
+                        : (isDark ? Colors.white70 : Colors.black),
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                   ),
                 );
               }).toList(),
@@ -218,7 +239,6 @@ class _AddExpenseBottomSheetState extends State<AddExpenseBottomSheet> {
             ),
             const SizedBox(height: 32),
 
-            // 7. ARCHITECT FIX: Update the button to show a loading spinner
             SizedBox(
               width: double.infinity,
               height: 55,
@@ -227,7 +247,7 @@ class _AddExpenseBottomSheetState extends State<AddExpenseBottomSheet> {
                   backgroundColor: const Color(0xFF2563EB),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                 ),
-                onPressed: _isLoading ? null : _saveExpense, // Disable button while loading
+                onPressed: _isLoading ? null : _saveExpense,
                 child: _isLoading
                     ? const SizedBox(
                     height: 24,
