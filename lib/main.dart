@@ -9,6 +9,8 @@ import 'firebase_options.dart';
 
 // Global state variables - these "broadcast" changes to the whole app
 final ValueNotifier<String> currencyNotifier = ValueNotifier<String>('\$');
+// [NEW] for the budget!
+final ValueNotifier<double> budgetNotifier = ValueNotifier<double>(0.0);
 final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier<ThemeMode>(
   ThemeMode.light,
 );
@@ -55,20 +57,24 @@ Future<void> saveCurrencyToDisk(String symbol) async {
   await prefs.setString('currencySymbol', symbol);
 }
 
-//Update & Fetch selected currency on firestore.
+//Update & Fetch selected Currency,Budget on firestore.
 void _listenToAuthChanges() {
   FirebaseAuth.instance.authStateChanges().listen((User? user) async {
     if (user != null) {
-      // User logged in! Fetch their cloud currency.
+      // Fetch both currency AND budget from the cloud
       final cloudCurrency = await UserService().getUserCurrency();
+      final cloudBudget = await UserService().getUserBudget();
 
       if (cloudCurrency != null) {
-        // Update the global notifier so the whole app reacts instantly
         currencyNotifier.value = cloudCurrency;
       }
+      // [NEW] Safely update the budget (default to 0.0 if they haven't set one yet)
+      budgetNotifier.value = cloudBudget ?? 0.0;
+
     } else {
-      // User logged out! Reset to a safe default so the next user doesn't see it.
+      // User logged out! Reset to safe defaults.
       currencyNotifier.value = '\$';
+      budgetNotifier.value = 0.0;
     }
   });
 }

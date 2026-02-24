@@ -32,4 +32,33 @@ class UserService {
     }
     return null; // Returns null if the user hasn't set a preference yet
   }
+
+  // --- NEW: Budget Functions ---
+
+  // 1. Save Budget to the Cloud
+  Future<void> updateBudget(double newBudget) async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+
+    await _firestore.collection('users').doc(user.uid).set({
+      'monthlyBudget': newBudget,
+    }, SetOptions(merge: true));
+  }
+
+  // 2. Fetch Budget from the Cloud
+  Future<double?> getUserBudget() async {
+    final user = _auth.currentUser;
+    if (user == null) return null;
+
+    try {
+      final doc = await _firestore.collection('users').doc(user.uid).get();
+      if (doc.exists && doc.data()!.containsKey('monthlyBudget')) {
+        // Firestore sometimes saves doubles as ints, so we use .toDouble() to be safe
+        return (doc.data()!['monthlyBudget'] as num).toDouble();
+      }
+    } catch (e) {
+      print("Error fetching budget: $e");
+    }
+    return null;
+  }
 }

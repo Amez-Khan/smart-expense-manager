@@ -6,6 +6,7 @@ import 'package:smart_expense_manager/features/auth/presentation/pages/profile_p
 import '../../../../main.dart';
 import '../../../dashboard/models/expense_model.dart';
 import '../../../dashboard/services/expense_service.dart';
+import '../../../dashboard/services/user_service.dart';
 import '../widget/add_expense_bottom_sheet.dart'; // Your exact path
 
 // Changed from StatelessWidget to StatefulWidget to handle dynamic data
@@ -46,6 +47,66 @@ class _DashboardPageState extends State<DashboardPage> {
       default:
         return Icons.category;
     }
+  }
+
+  // --- NEW: Budget Dialog ---
+  void _showEditBudgetDialog(BuildContext context) {
+    // Pre-fill the text field with the current budget if it's greater than 0
+    final currentBudget = budgetNotifier.value;
+    final TextEditingController budgetController = TextEditingController(
+      text: currentBudget > 0 ? currentBudget.toStringAsFixed(0) : '',
+    );
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Set Monthly Budget", style: TextStyle(color: Color(0xFF1E3A8A))),
+        content: TextField(
+          controller: budgetController,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          decoration: InputDecoration(
+            labelText: "Budget Amount",
+            // Dynamically show the correct currency symbol!
+            prefixIcon: Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Text(currencyNotifier.value, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            ),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel", style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF2563EB),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            onPressed: () async {
+              final newBudget = double.tryParse(budgetController.text) ?? 0.0;
+
+              // 1. Instantly update UI
+              budgetNotifier.value = newBudget;
+
+              // 2. Save to Firebase in the background
+              try {
+                await UserService().updateBudget(newBudget);
+              } catch (e) {
+                print("Error saving budget: $e");
+              }
+
+              if (context.mounted) {
+                Navigator.pop(context);
+              }
+            },
+            child: const Text("Save Goal", style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -209,52 +270,102 @@ class _DashboardPageState extends State<DashboardPage> {
                   ],
                 ),
                 const SizedBox(height: 8),
-                // --- SLIMMED DOWN TOTAL SPENT CARD ---
+                // --- UPGRADED TOTAL SPENT CARD WITH BUDGET ---
                 Container(
                   width: double.infinity,
-                  // Reduced padding from 24 to 16
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 16,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
                       colors: [Color(0xFF1E3A8A), Color(0xFF2563EB)],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
-                    borderRadius: BorderRadius.circular(
-                      20,
-                    ), // Slightly smaller radius
+                    borderRadius: BorderRadius.circular(20),
                     boxShadow: [
-                      BoxShadow(
-                        color: Colors.blue.withOpacity(0.3),
-                        blurRadius: 15,
-                        offset: const Offset(0, 8),
-                      ),
+                      BoxShadow(color: Colors.blue.withOpacity(0.3), blurRadius: 15, offset: const Offset(0, 8)),
                     ],
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Total Spent",
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.8),
-                          fontSize: 14,
-                        ), // Smaller font
-                      ),
-                      const SizedBox(height: 2), // Tighter gap
-                      ValueListenableBuilder<String>(
-                        valueListenable: currencyNotifier,
-                        builder: (context, symbol, child) {
-                          return Text(
-                            "$symbol${totalSpent.toStringAsFixed(2)}",
-                            style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold),
-                          );
-                        },
-                      ),
-                    ],
+                  child: ValueListenableBuilder<double>(
+                    valueListenable: budgetNotifier,
+                    builder: (context, budget, child) {
+
+                      // Calculate progress (cap at 1.0 or 100%)
+                      double progress = budget > 0 ? (totalSpent / budget) : 0.0;
+                      if (progress > 1.0) progress = 1.0;
+
+                      // Smart Colors: Green (<75%), Orange (75-90%), Red (>90%)
+                      Color progressColor = Colors.greenAccent;
+                      if (progress > 0.9) progressColor = Colors.redAccent;
+                      else if (progress > 0.75) progressColor = Colors.orangeAccent;
+
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "Total Spent",
+                                style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 14),
+                              ),
+                              // Small edit button to set the budget
+                              InkWell(
+                                onTap: () => _showEditBudgetDialog(context),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                      color: Colors.white.withOpacity(0.2),
+                                      borderRadius: BorderRadius.circular(12)
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Icon(budget > 0 ? Icons.edit : Icons.add, color: Colors.white, size: 14),
+                                      const SizedBox(width: 4),
+                                      Text(budget > 0 ? "Edit Goal" : "Set Budget", style: const TextStyle(color: Colors.white, fontSize: 12)),
+                                    ],
+                                  ),
+                                ),
+                              )
+                            ],
+                          ),
+                          const SizedBox(height: 2),
+
+                          ValueListenableBuilder<String>(
+                            valueListenable: currencyNotifier,
+                            builder: (context, symbol, child) {
+                              return Text(
+                                "$symbol${totalSpent.toStringAsFixed(2)}",
+                                style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold),
+                              );
+                            },
+                          ),
+
+                          // Only show the progress bar if a budget is actually set
+                          if (budget > 0) ...[
+                            const SizedBox(height: 16),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text("Budget: ${currencyNotifier.value}${budget.toStringAsFixed(0)}",
+                                    style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 12)),
+                                Text("${(progress * 100).toStringAsFixed(0)}%",
+                                    style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: LinearProgressIndicator(
+                                value: progress,
+                                backgroundColor: Colors.white.withOpacity(0.2),
+                                color: progressColor,
+                                minHeight: 6,
+                              ),
+                            ),
+                          ]
+                        ],
+                      );
+                    },
                   ),
                 ),
                 const SizedBox(height: 16), // Reduced gap from 24 to 16
