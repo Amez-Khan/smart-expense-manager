@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // [NEW] Added for memory storage
 
 import 'features/auth/presentation/pages/auth_gate.dart';
+import 'features/dashboard/services/notification_service.dart';
 import 'features/dashboard/services/user_service.dart';
 import 'firebase_options.dart';
 
@@ -25,6 +26,15 @@ void main() async {
 
   // 3. [NEW] Load saved settings from phone memory before the app starts
   await _loadSavedSettings();
+
+  // [NEW] 1. Initialize the notification service
+  await NotificationService().init();
+
+  // [NEW] 2. Politely ask the user for permission when they open the app
+  await NotificationService().requestPermission();
+
+  // [NEW] Turn on the daily reminder
+  await NotificationService().scheduleDailyReminder();
 
   // 4. Start the app
   runApp(const SmartExpenseApp());

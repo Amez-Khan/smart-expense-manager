@@ -6,6 +6,7 @@ import 'package:smart_expense_manager/features/auth/presentation/pages/profile_p
 import '../../../../main.dart';
 import '../../../dashboard/models/expense_model.dart';
 import '../../../dashboard/services/expense_service.dart';
+import '../../../dashboard/services/notification_service.dart';
 import '../../../dashboard/services/user_service.dart';
 import '../widget/add_expense_bottom_sheet.dart'; // Your exact path
 
@@ -61,7 +62,10 @@ class _DashboardPageState extends State<DashboardPage> {
       context: context,
       builder: (context) => AlertDialog(
         // [FIX] Let Flutter handle the default text color based on the theme!
-        title: const Text("Set Monthly Budget", style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text(
+          "Set Monthly Budget",
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         content: TextField(
           controller: budgetController,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -240,6 +244,22 @@ class _DashboardPageState extends State<DashboardPage> {
             0.0,
             (sum, item) => sum + item.amount,
           );
+
+          // [NEW] 2. Trigger the Budget Warning logic (push notification local_notification)
+          // We use a microtask to ensure the UI finishes rendering before the notification pops
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            final budget = budgetNotifier.value;
+            if (budget > 0) {
+              double usagePercentage = totalSpent / budget;
+
+              // Check if usage is 90% or more
+              if (usagePercentage >= 0.9) {
+                NotificationService().showBudgetWarning(
+                  percentageUsed: usagePercentage,
+                );
+              }
+            }
+          });
 
           final Map<String, double> categoryTotals = {};
           for (var expense in expenses) {
@@ -472,9 +492,13 @@ class _DashboardPageState extends State<DashboardPage> {
                                   children: [
                                     Text(
                                       categoryName,
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontSize: 13,
                                         fontWeight: FontWeight.w500,
+                                        // [FIX] This ensures text is black in light mode and white in dark mode
+                                        color: isDark
+                                            ? Colors.white
+                                            : Colors.black87,
                                       ),
                                     ),
 
