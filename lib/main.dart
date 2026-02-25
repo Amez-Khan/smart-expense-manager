@@ -88,8 +88,17 @@ void main() async {
 // Simple logic to read from storage
 Future<void> _loadSavedSettings() async {
   final prefs = await SharedPreferences.getInstance();
-  final bool isDark = prefs.getBool('isDarkMode') ?? false;
-  themeNotifier.value = isDark ? ThemeMode.dark : ThemeMode.light;
+
+  // Get saved theme:
+  // If null (first time), we now use ThemeMode.system!
+  final bool? isDark = prefs.getBool('isDarkMode');
+
+  if (isDark == null) {
+    themeNotifier.value = ThemeMode.system; // [NEW] Follows device settings
+  } else {
+    themeNotifier.value = isDark ? ThemeMode.dark : ThemeMode.light;
+  }
+
   currencyNotifier.value = prefs.getString('currencySymbol') ?? '\$';
 }
 

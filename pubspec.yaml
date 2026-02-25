@@ -74,12 +74,15 @@ flutter:
   uses-material-design: true
 
 flutter_native_splash:
-  color: "#1E3A8A"  # This is the background color of the splash screen
+  # This is the blue background color from your image
+  color: "#1E3A8A"
+  # This is the single, full-screen image
   image: assets/splash.png
+
   android_12:
+    # Android 12 needs the same configuration
+    color: "#1E3A8A"
     image: assets/splash.png
-    #color: "#1E3A8A"
-    #icon_background_color: "#1E3A8A"
 
 flutter_launcher_icons:
   android: true

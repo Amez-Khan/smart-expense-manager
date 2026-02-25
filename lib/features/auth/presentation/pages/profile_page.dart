@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../main.dart';
 import '../../../dashboard/services/user_service.dart';
@@ -72,30 +73,30 @@ class ProfilePage extends StatelessWidget {
                 ListTile(
                   leading: const Icon(
                     Icons.dark_mode,
-                    color: Color(0xFF1E3A8A),
+                    color: Color(0xFF1E3A8A), // Your preferred brand blue
                   ),
                   title: const Text(
-                    "Dark Mode",
+                    "App Theme",
                     style: TextStyle(fontWeight: FontWeight.w500),
                   ),
+                  // [NEW] Trailing text shows the current mode instead of a limited switch
                   trailing: ValueListenableBuilder<ThemeMode>(
                     valueListenable: themeNotifier,
-                    builder: (context, mode, child) {
-                      return Switch(
-                        value: mode == ThemeMode.dark,
-                        onChanged: (bool value) {
-                          // Update the UI immediately
-                          themeNotifier.value = value
-                              ? ThemeMode.dark
-                              : ThemeMode.light;
+                    builder: (context, mode, _) {
+                      String modeText = "System";
+                      if (mode == ThemeMode.light) modeText = "Light";
+                      if (mode == ThemeMode.dark) modeText = "Dark";
 
-                          // [NEW] Save the choice to phone memory
-                          saveThemeToDisk(value);
-                        },
-                        activeColor: const Color(0xFF2563EB),
+                      return Text(
+                        modeText,
+                        style: const TextStyle(
+                          color: Color(0xFF2563EB),
+                          fontWeight: FontWeight.bold,
+                        ),
                       );
                     },
                   ),
+                  onTap: () => _showThemeDialog(context),
                 ),
                 _buildProfileItem(
                   Icons.help_outline,
@@ -532,6 +533,50 @@ class ProfilePage extends StatelessWidget {
           );
         },
       ),
+    );
+  }
+
+  void _showThemeDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Select Theme"),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        content: ValueListenableBuilder<ThemeMode>(
+          valueListenable: themeNotifier,
+          builder: (context, currentMode, _) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildThemeOption(context, "Light", ThemeMode.light, currentMode),
+                _buildThemeOption(context, "Dark", ThemeMode.dark, currentMode),
+                _buildThemeOption(context, "System Default", ThemeMode.system, currentMode),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildThemeOption(BuildContext context, String title, ThemeMode mode, ThemeMode currentMode) {
+    return RadioListTile<ThemeMode>(
+      title: Text(title),
+      value: mode,
+      groupValue: currentMode,
+      activeColor: const Color(0xFF2563EB), // Matches your switch's activeColor
+      onChanged: (newMode) {
+        if (newMode != null) {
+          themeNotifier.value = newMode;
+          // Save to disk: true for dark, false for light, null for system
+          if (newMode == ThemeMode.system) {
+            SharedPreferences.getInstance().then((p) => p.remove('isDarkMode'));
+          } else {
+            saveThemeToDisk(newMode == ThemeMode.dark);
+          }
+        }
+        Navigator.pop(context);
+      },
     );
   }
 }
