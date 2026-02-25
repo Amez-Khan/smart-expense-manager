@@ -227,120 +227,128 @@ class ProfilePage extends StatelessWidget {
 
   void _showCurrencyPicker(BuildContext context) {
     final List<String> currencies = ['\$', '₹', '€', '£', '¥', '₩'];
-    // 1. [NEW] Check the current theme brightness
     final isDark = Theme.of(context).brightness == Brightness.dark;
+
     showModalBottomSheet(
       context: context,
-      // 2. [FIX] Swap background color based on theme
+      isScrollControlled: true, // 1. [FIX] Allows sheet to resize dynamically
       backgroundColor: isDark ? Colors.grey[900] : Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
       ),
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Handle bar for better UX
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                // 3. [FIX] Darker handle bar in dark mode
-                color: isDark ? Colors.grey[700] : Colors.grey[300],
-                borderRadius: BorderRadius.circular(10),
-              ),
+      builder: (context) => SafeArea( // 2. [FIX] Prevents clipping into landscape screen notches
+        child: SingleChildScrollView( // 3. [FIX] Makes the content scrollable if it overflows
+          child: Container(
+            padding: EdgeInsets.only(
+              left: 24,
+              right: 24,
+              top: 24,
+              // 4. [FIX] Adds padding at the bottom for navigation bars
+              bottom: MediaQuery.of(context).viewInsets.bottom + 24,
             ),
-            const SizedBox(height: 20),
-            Text(
-              "Select Currency",
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight
-                    .bold, // 4. [FIX] White text in dark mode, blue in light mode
-                color: isDark ? Colors.white : const Color(0xFF1E3A8A),
-              ),
-            ),
-            const SizedBox(height: 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Handle bar for better UX
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: isDark ? Colors.grey[700] : Colors.grey[300],
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  "Select Currency",
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold, // 4. [FIX] White text in dark mode, blue in light mode
+                    color: isDark ? Colors.white : const Color(0xFF1E3A8A),
+                  ),
+                ),
+                const SizedBox(height: 24),
 
-            // ARCHITECT FIX: Using a GridView instead of Wrap for perfect alignment
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3, // 3 columns looks best on mobile
-                childAspectRatio: 2.0, // Makes the buttons slightly wide
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-              ),
-              itemCount: currencies.length,
-              itemBuilder: (context, index) {
-                final symbol = currencies[index];
-                final isSelected = currencyNotifier.value == symbol;
+                // ARCHITECT FIX: Using a GridView instead of Wrap for perfect alignment
+                GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3, // 3 columns looks best on mobile
+                    childAspectRatio: 2.0, // Makes the buttons slightly wide
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                  ),
+                  itemCount: currencies.length,
+                  itemBuilder: (context, index) {
+                    final symbol = currencies[index];
+                    final isSelected = currencyNotifier.value == symbol;
 
-                return InkWell(
-                  onTap: () async {
-                    // 2. Update the UI symbol instantly (Optimistic UI)
-                    currencyNotifier.value = symbol;
+                    return InkWell(
+                      onTap: () async {
+                        // 2. Update the UI symbol instantly (Optimistic UI)
+                        currencyNotifier.value = symbol;
 
-                    // 3. Save the symbol to phone memory (Local backup)
-                    saveCurrencyToDisk(symbol);
+                        // 3. Save the symbol to phone memory (Local backup)
+                        saveCurrencyToDisk(symbol);
 
-                    // 4. [NEW] Save to Firestore silently in the background!
-                    try {
-                      await UserService().updateCurrency(symbol);
-                    } catch (e) {
-                      print("Failed to sync currency to cloud: $e");
-                    }
+                        // 4. [NEW] Save to Firestore silently in the background!
+                        try {
+                          await UserService().updateCurrency(symbol);
+                        } catch (e) {
+                          print("Failed to sync currency to cloud: $e");
+                        }
 
-                    // 5. Close the bottom sheet safely
-                    if (context.mounted) {
-                      Navigator.pop(context);
-                    }
-                  },
-                  borderRadius: BorderRadius.circular(12),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      // 5. [FIX] Dynamic background colors for the grid buttons
-                      color: isSelected
-                          ? (isDark
-                                ? const Color(0xFF2563EB).withOpacity(0.2)
-                                : const Color(0xFF2563EB).withOpacity(0.1))
-                          : (isDark ? Colors.grey[800] : Colors.grey[50]),
+                        // 5. Close the bottom sheet safely
+                        if (context.mounted) {
+                          Navigator.pop(context);
+                        }
+                      },
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        // 6. [FIX] Dynamic border colors
-                        color: isSelected
-                            ? (isDark
-                                  ? Colors.blue[300]!
-                                  : const Color(0xFF2563EB))
-                            : (isDark ? Colors.grey[700]! : Colors.grey[200]!),
-                        width: 1.5,
-                      ),
-                    ),
-                    child: Center(
-                      child: Text(
-                        symbol,
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: isSelected
-                              ? FontWeight.bold
-                              : FontWeight.normal,
-                          // 7. [FIX] Dynamic text colors for the symbols
+                      child: Container(
+                        decoration: BoxDecoration(
+                          // 5. [FIX] Dynamic background colors for the grid buttons
                           color: isSelected
                               ? (isDark
-                                    ? Colors.blue[300]
-                                    : const Color(0xFF2563EB))
-                              : (isDark ? Colors.white : Colors.black87),
+                              ? const Color(0xFF2563EB).withOpacity(0.2)
+                              : const Color(0xFF2563EB).withOpacity(0.1))
+                              : (isDark ? Colors.grey[800] : Colors.grey[50]),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            // 6. [FIX] Dynamic border colors
+                            color: isSelected
+                                ? (isDark
+                                ? Colors.blue[300]!
+                                : const Color(0xFF2563EB))
+                                : (isDark ? Colors.grey[700]! : Colors.grey[200]!),
+                            width: 1.5,
+                          ),
+                        ),
+                        child: Center(
+                          child: Text(
+                            symbol,
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: isSelected
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                              // 7. [FIX] Dynamic text colors for the symbols
+                              color: isSelected
+                                  ? (isDark
+                                  ? Colors.blue[300]
+                                  : const Color(0xFF2563EB))
+                                  : (isDark ? Colors.white : Colors.black87),
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-                );
-              },
+                    );
+                  },
+                ),
+                const SizedBox(height: 16),
+              ],
             ),
-            const SizedBox(height: 16),
-          ],
+          ),
         ),
       ),
     );
