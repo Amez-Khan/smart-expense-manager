@@ -101,6 +101,33 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
                     style: TextStyle(color: Colors.grey, height: 1.5),
                   ),
                   const SizedBox(height: 32),
+                  const SizedBox(height: 24),
+// [NEW] Spam Warning Box
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.orange.withOpacity(0.3)),
+                    ),
+                    child: const Row(
+                      children: [
+                        Icon(Icons.info_outline_rounded, color: Colors.orange),
+                        SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            "Don't see it? Please check your Spam or Junk folder and mark it as 'Not Spam'.",
+                            style: TextStyle(
+                              color: Colors.orange,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 32),
 
                   // Our custom button. It changes text based on the _isChecking variable.
                   AuthButton(
