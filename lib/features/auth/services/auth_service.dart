@@ -54,4 +54,13 @@ class AuthService {
       throw Exception(e.toString());
     }
   }
+
+  // Add this inside your AuthService class
+  Future<void> sendPasswordResetEmail(String email) async {
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+    } catch (e) {
+      throw Exception(e.toString());
+    }
+  }
 }

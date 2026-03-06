@@ -74,14 +74,22 @@ flutter:
   uses-material-design: true
 
 flutter_native_splash:
-  # Replaces 'color' and 'image' for pre-Android 12 and iOS
-  background_image: assets/splash.png
+  # Light Mode Settings
+  color: "#FFFFFF"
+  image: assets/splash.png
+
+  # Dark Mode Settings
+  color_dark: "#FFFFFF"
+  image_dark: assets/splash.png
 
   android_12:
-    # Android 12 STRICTLY requires a solid color for its splash screen API.
-    # It does not support full-screen background images in the same way.
+    # Android 12+ Light Mode
     color: "#FFFFFF"
     image: assets/splash.png
+
+    # Android 12+ Dark Mode
+    color_dark: "#FFFFFF"
+    image_dark: assets/splash.png
 
 flutter_launcher_icons:
   android: true

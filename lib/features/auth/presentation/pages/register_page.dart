@@ -3,7 +3,6 @@ import '../../services/auth_service.dart';
 import '../widget/auth_button.dart';
 import '../widget/auth_text_field.dart';
 
-
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
 
@@ -59,10 +58,7 @@ class _RegisterPageState extends State<RegisterPage> {
           // Remove the "Exception: " prefix from the error message
           final errorMessage = e.toString().replaceAll('Exception: ', '');
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(errorMessage),
-              backgroundColor: Colors.red,
-            ),
+            SnackBar(content: Text(errorMessage), backgroundColor: Colors.red),
           );
         }
       } finally {
@@ -76,12 +72,17 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
+    // [NEW] 1. Detect if the system is currently in Dark Mode
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       body: Container(
         height: double.infinity, // Ensures gradient fills the whole screen
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFF1E3A8A), Color(0xFF2563EB)],
+            // [NEW] 2. Swap the gradient based on the theme
+            colors: isDarkMode
+                ? [const Color(0xFF020617), const Color(0xFF0F172A)]
+                : [const Color(0xFF1E3A8A), const Color(0xFF2563EB)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -92,10 +93,22 @@ class _RegisterPageState extends State<RegisterPage> {
             child: Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: Colors.white,
+                // [NEW] 3. Let the Flutter Theme handle the card color automatically
+                color: Theme.of(context).cardColor,
                 borderRadius: BorderRadius.circular(20),
+                // [NEW] 4. Added a subtle shadow to make it pop in dark mode
+                boxShadow: [
+                  BoxShadow(
+                    color: isDarkMode
+                        ? Colors.black.withOpacity(0.4)
+                        : Colors.black.withOpacity(0.1),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
               ),
-              child: Form( // Wrapping the column in a Form
+              child: Form(
+                // Wrapping the column in a Form
                 key: _formKey,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -119,7 +132,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       icon: Icons.person_outline,
                       controller: _nameController,
                       validator: (value) =>
-                      value!.isEmpty ? "Please enter your name" : null,
+                          value!.isEmpty ? "Please enter your name" : null,
                     ),
                     const SizedBox(height: 16),
 
@@ -129,8 +142,10 @@ class _RegisterPageState extends State<RegisterPage> {
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
                       validator: (value) {
-                        if (value == null || value.isEmpty) return "Please enter an email";
-                        if (!value.contains('@')) return "Please enter a valid email";
+                        if (value == null || value.isEmpty)
+                          return "Please enter an email";
+                        if (!value.contains('@'))
+                          return "Please enter a valid email";
                         return null;
                       },
                     ),
@@ -142,10 +157,14 @@ class _RegisterPageState extends State<RegisterPage> {
                       controller: _passwordController,
                       obscure: true,
                       validator: (value) {
-                        if (value == null || value.isEmpty) return "Please enter a password";
-                        if (value.length < 8) return "Must be at least 8 characters";
-                        if (!RegExp(r'(?=.*?[A-Z])').hasMatch(value)) return "Need at least one uppercase letter";
-                        if (!RegExp(r'(?=.*?[0-9])').hasMatch(value)) return "Need at least one number";
+                        if (value == null || value.isEmpty)
+                          return "Please enter a password";
+                        if (value.length < 8)
+                          return "Must be at least 8 characters";
+                        if (!RegExp(r'(?=.*?[A-Z])').hasMatch(value))
+                          return "Need at least one uppercase letter";
+                        if (!RegExp(r'(?=.*?[0-9])').hasMatch(value))
+                          return "Need at least one number";
                         return null;
                       },
                     ),
@@ -158,9 +177,10 @@ class _RegisterPageState extends State<RegisterPage> {
                     const SizedBox(height: 16),
 
                     TextButton(
-                      onPressed: () => Navigator.pop(context), // Goes back to Login
+                      onPressed: () =>
+                          Navigator.pop(context), // Goes back to Login
                       child: const Text("Already have an account? Login"),
-                    )
+                    ),
                   ],
                 ),
               ),

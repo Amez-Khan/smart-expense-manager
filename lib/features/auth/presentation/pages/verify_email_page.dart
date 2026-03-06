@@ -10,30 +10,21 @@ class VerifyEmailPage extends StatefulWidget {
 }
 
 class _VerifyEmailPageState extends State<VerifyEmailPage> {
-  // This variable controls what the button says (e.g., "Checking Status..." vs "I've Verified My Email")
   bool _isChecking = false;
 
-  // This function runs when the user clicks the verification button
   Future<void> _checkEmailVerified() async {
-    // 1. Show the loading state on the button
     setState(() => _isChecking = true);
 
-    // 2. Force Firebase to fetch the absolute latest user data from the server.
-    // Without this, the app won't know the user clicked the link in their email!
     await FirebaseAuth.instance.currentUser?.reload();
 
-    // 3. Stop the loading state
     setState(() => _isChecking = false);
 
-    // 4. Check if the email is STILL not verified after reloading.
-    // If it's true, the AuthGate will automatically take them to the Dashboard.
-    // If it's false, we stay on this screen and show them a helpful warning.
     if (FirebaseAuth.instance.currentUser?.emailVerified == false) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Email not verified yet. Please check your inbox.'),
-            backgroundColor: Colors.orange, // Orange stands out as a warning
+            backgroundColor: Colors.orange,
           ),
         );
       }
@@ -42,13 +33,16 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       body: Container(
         height: double.infinity,
-        // Match the background gradient from the Login and Register screens
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFF1E3A8A), Color(0xFF2563EB)],
+            colors: isDarkMode
+                ? [const Color(0xFF020617), const Color(0xFF0F172A)]
+                : [const Color(0xFF1E3A8A), const Color(0xFF2563EB)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -56,121 +50,140 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
         child: Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
-            // The white floating card that holds our content
             child: Container(
-              padding: const EdgeInsets.all(32),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
               decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
+                color: Theme.of(context).cardColor,
+                borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
+                    color: isDarkMode
+                        ? Colors.black.withOpacity(0.4)
+                        : Colors.black.withOpacity(0.1),
+                    blurRadius: 24,
+                    offset: const Offset(0, 8),
                   ),
                 ],
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // A nice big email icon at the top
+                  // Clean, simplified icon
                   Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: Colors.blue.withOpacity(0.1),
+                      color: isDarkMode
+                          ? Colors.blue.withOpacity(0.1)
+                          : Colors.blue.shade50,
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
-                      Icons.mark_email_unread_rounded,
-                      size: 64,
-                      color: Color(0xFF2563EB),
+                    child: Icon(
+                      Icons.mark_email_unread_outlined,
+                      size: 48,
+                      color: isDarkMode ? Colors.blueAccent : const Color(0xFF2563EB),
                     ),
                   ),
                   const SizedBox(height: 24),
+
+                  // Professional typography
                   const Text(
-                    "Verify Your Email",
+                    "Check your inbox",
                     style: TextStyle(
                       fontSize: 24,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.5,
                     ),
                   ),
                   const SizedBox(height: 12),
                   const Text(
-                    "We've sent a secure link to your inbox. Please click it to activate your account.",
+                    "We sent a verification link to your email.\nTap the link to activate your account.",
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.grey, height: 1.5),
-                  ),
-                  const SizedBox(height: 32),
-                  const SizedBox(height: 24),
-// [NEW] Spam Warning Box
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.orange.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.orange.withOpacity(0.3)),
+                    style: TextStyle(
+                      color: Colors.grey,
+                      height: 1.5,
+                      fontSize: 15,
                     ),
-                    child: const Row(
-                      children: [
-                        Icon(Icons.info_outline_rounded, color: Colors.orange),
-                        SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            "Don't see it? Please check your Spam or Junk folder and mark it as 'Not Spam'.",
-                            style: TextStyle(
-                              color: Colors.orange,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
-                            ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Subtle, integrated spam hint
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center, // Keeps icon aligned if text wraps
+                    children: [
+                      Icon(
+                        Icons.info_outline_rounded,
+                        size: 24,
+                        color: Colors.red.shade300,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          "Tip: Check your spam folder if it doesn't arrive.",
+                          style: TextStyle(
+                            color: Colors.red.shade300,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 32),
 
-                  // Our custom button. It changes text based on the _isChecking variable.
+                  // Primary Action
                   AuthButton(
-                    text: _isChecking ? "Checking Status..." : "I've Verified My Email",
+                    text: _isChecking
+                        ? "Checking Status..."
+                        : "I've clicked the link",
                     onPressed: _isChecking ? () {} : _checkEmailVerified,
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 24),
 
-                  // Bottom row for extra options (Logout or Resend Email)
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  // Stacked Secondary Actions for cleaner UX
+                  Column(
                     children: [
-                      // If they want to log in with a different account instead
-                      TextButton(
-                        onPressed: () => FirebaseAuth.instance.signOut(),
-                        child: const Text("Back to Login", style: TextStyle(color: Colors.grey)),
-                      ),
-                      // If they didn't get the email, let them request a new one
                       TextButton(
                         onPressed: () async {
                           try {
-                            // 1. Ask Firebase to send the email
                             await FirebaseAuth.instance.currentUser?.sendEmailVerification();
-
-                            // 2. If it works, show a success message
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Verification email resent!')),
+                                const SnackBar(
+                                  content: Text('Verification email resent!'),
+                                ),
                               );
                             }
                           } catch (e) {
-                            // 3. If Firebase blocks it (spam protection), catch the error
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Please wait a moment before resending.')),
+                                const SnackBar(
+                                  content: Text('Please wait a moment before resending.'),
+                                ),
                               );
                             }
                           }
                         },
-                        child: const Text('Resend Link'),
+                        style: TextButton.styleFrom(
+                          minimumSize: const Size(double.infinity, 48),
+                        ),
+                        child: const Text(
+                          'Resend Email',
+                          style: TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () => FirebaseAuth.instance.signOut(),
+                        style: TextButton.styleFrom(
+                          minimumSize: const Size(double.infinity, 48),
+                        ),
+                        child: const Text(
+                          "← Back to Login",
+                          style: TextStyle(color: Colors.grey),
+                        ),
                       ),
                     ],
-                  )
+                  ),
                 ],
               ),
             ),

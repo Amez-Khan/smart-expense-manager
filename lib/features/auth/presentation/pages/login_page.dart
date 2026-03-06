@@ -3,6 +3,7 @@ import 'package:smart_expense_manager/features/auth/presentation/pages/register_
 import '../../services/auth_service.dart';
 import '../widget/auth_button.dart';
 import '../widget/auth_text_field.dart';
+import 'forgot_password_page.dart';
 
 
 class LoginPage extends StatefulWidget {
@@ -63,11 +64,16 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    // 1. Detect if the system is currently in Dark Mode
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration:  BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFF1E3A8A), Color(0xFF2563EB)],
+            // 2. Swap the gradient based on the theme
+            colors: isDarkMode
+                ? [const Color(0xFF020617), const Color(0xFF0F172A)]
+                : [const Color(0xFF1E3A8A), const Color(0xFF2563EB)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -78,8 +84,15 @@ class _LoginPageState extends State<LoginPage> {
             child: Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).cardColor,
                 borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: isDarkMode ? Colors.black.withOpacity(0.4) : Colors.black.withOpacity(0.1),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -109,7 +122,25 @@ class _LoginPageState extends State<LoginPage> {
                     controller: passwordController,
                     obscure: true,
                   ),
-                  const SizedBox(height: 24),
+                  // ADD THIS BLOCK RIGHT HERE
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const ForgotPasswordPage(),
+                          ),
+                        );
+                      },
+                      child: const Text(
+                        "Forgot Password?",
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
                   AuthButton(
                     text: _isLoading ? "Logging in..." : "Login",
                     onPressed: _isLoading ? () {} : _handleLogin,
