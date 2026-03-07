@@ -245,6 +245,13 @@ class _DashboardPageState extends State<DashboardPage> {
             (sum, item) => sum + item.amount,
           );
 
+          // --- NEW: Calculate Today's Total ---
+          final now = DateTime.now();
+          final double todaysTotal = allExpenses
+              .where((e) => e.date.year == now.year && e.date.month == now.month && e.date.day == now.day)
+              .fold(0.0, (sum, item) => sum + item.amount);
+          // ---------------------------------------------------------
+
           // [NEW] 2. Trigger the Budget Warning logic (push notification local_notification)
           // We use a microtask to ensure the UI finishes rendering before the notification pops
           WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -312,6 +319,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   ],
                 ),
                 const SizedBox(height: 8),
+
                 // --- UPGRADED TOTAL SPENT CARD WITH BUDGET ---
                 Container(
                   width: double.infinity,
@@ -398,18 +406,62 @@ class _DashboardPageState extends State<DashboardPage> {
                           ),
                           const SizedBox(height: 2),
 
-                          ValueListenableBuilder<String>(
-                            valueListenable: currencyNotifier,
-                            builder: (context, symbol, child) {
-                              return Text(
-                                "$symbol${totalSpent.toStringAsFixed(2)}",
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.bold,
+                          // --- MAIN ROW: TOTAL SPENT (LEFT) & TODAY'S SPEND (RIGHT) ---
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              // Left Side: Total Monthly Spent
+                              Expanded(
+                                child: ValueListenableBuilder<String>(
+                                  valueListenable: currencyNotifier,
+                                  builder: (context, symbol, child) {
+                                    return Text(
+                                      "$symbol${totalSpent.toStringAsFixed(2)}",
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 28,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis, // Prevents errors if the number gets huge!
+                                    );
+                                  },
                                 ),
-                              );
-                            },
+                              ),
+
+                              // Right Side: Today's Spend Pill
+                              if (_selectedMonth.month == now.month && _selectedMonth.year == now.year) ...[
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.15),
+                                    borderRadius: BorderRadius.circular(20), // Made it a perfectly rounded pill
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(Icons.today_rounded, color: Colors.white, size: 14),
+                                      const SizedBox(width: 6),
+                                      ValueListenableBuilder<String>(
+                                        valueListenable: currencyNotifier,
+                                        builder: (context, symbol, child) {
+                                          return Text(
+                                            "Today's: $symbol${todaysTotal.toStringAsFixed(2)}",
+                                            style:  TextStyle(
+                                              color: Colors.white.withOpacity(0.8),
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ],
                           ),
 
                           // Only show the progress bar if a budget is actually set
