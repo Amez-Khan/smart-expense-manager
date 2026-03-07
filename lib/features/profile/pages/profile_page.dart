@@ -533,6 +533,23 @@ class ProfilePage extends StatelessWidget {
                     );
                   },
                 ),
+
+                // Add this at the bottom of your ListView in ProfilePage
+                const Divider(),
+                ListTile(
+                  leading: const Icon(Icons.code_rounded, color: Colors.grey),
+                  title: const Text('About the Developer'),
+                  subtitle: const Text('Designed & built by Amez Khan Azeez Khan'),
+                  onTap: () {
+                    showAboutDialog(
+                      context: context,
+                      applicationName: 'Smart Expense',
+                      applicationVersion: '1.0.1',
+                      applicationIcon: const Icon(Icons.account_balance_wallet, size: 40, color: Colors.blue),
+                      applicationLegalese: 'An independent project showcasing Clean Architecture and Firebase integration.',
+                    );
+                  },
+                ),
               ],
             ),
           );
