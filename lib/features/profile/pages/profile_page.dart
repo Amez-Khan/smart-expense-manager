@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../main.dart';
-import '../../../dashboard/services/user_service.dart';
+import '../../../../core/services/user_service.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -237,8 +237,10 @@ class ProfilePage extends StatelessWidget {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
       ),
-      builder: (context) => SafeArea( // 2. [FIX] Prevents clipping into landscape screen notches
-        child: SingleChildScrollView( // 3. [FIX] Makes the content scrollable if it overflows
+      builder: (context) => SafeArea(
+        // 2. [FIX] Prevents clipping into landscape screen notches
+        child: SingleChildScrollView(
+          // 3. [FIX] Makes the content scrollable if it overflows
           child: Container(
             padding: EdgeInsets.only(
               left: 24,
@@ -264,7 +266,8 @@ class ProfilePage extends StatelessWidget {
                   "Select Currency",
                   style: TextStyle(
                     fontSize: 20,
-                    fontWeight: FontWeight.bold, // 4. [FIX] White text in dark mode, blue in light mode
+                    fontWeight: FontWeight
+                        .bold, // 4. [FIX] White text in dark mode, blue in light mode
                     color: isDark ? Colors.white : const Color(0xFF1E3A8A),
                   ),
                 ),
@@ -311,17 +314,19 @@ class ProfilePage extends StatelessWidget {
                           // 5. [FIX] Dynamic background colors for the grid buttons
                           color: isSelected
                               ? (isDark
-                              ? const Color(0xFF2563EB).withOpacity(0.2)
-                              : const Color(0xFF2563EB).withOpacity(0.1))
+                                    ? const Color(0xFF2563EB).withOpacity(0.2)
+                                    : const Color(0xFF2563EB).withOpacity(0.1))
                               : (isDark ? Colors.grey[800] : Colors.grey[50]),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
                             // 6. [FIX] Dynamic border colors
                             color: isSelected
                                 ? (isDark
-                                ? Colors.blue[300]!
-                                : const Color(0xFF2563EB))
-                                : (isDark ? Colors.grey[700]! : Colors.grey[200]!),
+                                      ? Colors.blue[300]!
+                                      : const Color(0xFF2563EB))
+                                : (isDark
+                                      ? Colors.grey[700]!
+                                      : Colors.grey[200]!),
                             width: 1.5,
                           ),
                         ),
@@ -336,8 +341,8 @@ class ProfilePage extends StatelessWidget {
                               // 7. [FIX] Dynamic text colors for the symbols
                               color: isSelected
                                   ? (isDark
-                                  ? Colors.blue[300]
-                                  : const Color(0xFF2563EB))
+                                        ? Colors.blue[300]
+                                        : const Color(0xFF2563EB))
                                   : (isDark ? Colors.white : Colors.black87),
                             ),
                           ),
@@ -548,9 +553,19 @@ class ProfilePage extends StatelessWidget {
             return Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                _buildThemeOption(context, "Light", ThemeMode.light, currentMode),
+                _buildThemeOption(
+                  context,
+                  "Light",
+                  ThemeMode.light,
+                  currentMode,
+                ),
                 _buildThemeOption(context, "Dark", ThemeMode.dark, currentMode),
-                _buildThemeOption(context, "System Default", ThemeMode.system, currentMode),
+                _buildThemeOption(
+                  context,
+                  "System Default",
+                  ThemeMode.system,
+                  currentMode,
+                ),
               ],
             );
           },
@@ -559,7 +574,12 @@ class ProfilePage extends StatelessWidget {
     );
   }
 
-  Widget _buildThemeOption(BuildContext context, String title, ThemeMode mode, ThemeMode currentMode) {
+  Widget _buildThemeOption(
+    BuildContext context,
+    String title,
+    ThemeMode mode,
+    ThemeMode currentMode,
+  ) {
     return RadioListTile<ThemeMode>(
       title: Text(title),
       value: mode,

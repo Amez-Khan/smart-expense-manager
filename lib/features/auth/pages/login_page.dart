@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:smart_expense_manager/features/auth/presentation/pages/register_page.dart';
-import '../../services/auth_service.dart';
-import '../widget/auth_button.dart';
-import '../widget/auth_text_field.dart';
-import 'forgot_password_page.dart';
+import 'package:smart_expense_manager/features/auth/pages/register_page.dart';
 
+import '../services/auth_service.dart';
+import '../widgets/auth_button.dart';
+import '../widgets/auth_text_field.dart';
+import 'forgot_password_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -27,6 +27,7 @@ class _LoginPageState extends State<LoginPage> {
     passwordController.dispose();
     super.dispose();
   }
+
   // 2. Add the login logic
   void _handleLogin() async {
     // Basic validation to ensure fields aren't empty
@@ -68,7 +69,7 @@ class _LoginPageState extends State<LoginPage> {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       body: Container(
-        decoration:  BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             // 2. Swap the gradient based on the theme
             colors: isDarkMode
@@ -88,7 +89,9 @@ class _LoginPageState extends State<LoginPage> {
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: isDarkMode ? Colors.black.withOpacity(0.4) : Colors.black.withOpacity(0.1),
+                    color: isDarkMode
+                        ? Colors.black.withOpacity(0.4)
+                        : Colors.black.withOpacity(0.1),
                     blurRadius: 20,
                     offset: const Offset(0, 10),
                   ),
@@ -99,10 +102,7 @@ class _LoginPageState extends State<LoginPage> {
                 children: [
                   const Text(
                     "Welcome Back",
-                    style: TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
                   const Text(
@@ -154,11 +154,13 @@ class _LoginPageState extends State<LoginPage> {
 
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const RegisterPage()),
+                        MaterialPageRoute(
+                          builder: (context) => const RegisterPage(),
+                        ),
                       );
                     },
                     child: const Text("Create an account"),
-                  )
+                  ),
                 ],
               ),
             ),

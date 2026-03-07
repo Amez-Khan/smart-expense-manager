@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../services/auth_service.dart';
-import '../widget/auth_button.dart';
-import '../widget/auth_text_field.dart';
+
+import '../services/auth_service.dart';
+import '../widgets/auth_button.dart';
+import '../widgets/auth_text_field.dart';
 
 class ForgotPasswordPage extends StatefulWidget {
   const ForgotPasswordPage({super.key});
@@ -38,7 +39,9 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Reset link sent! Please check your inbox and Spam folder.'),
+            content: Text(
+              'Reset link sent! Please check your inbox and Spam folder.',
+            ),
             backgroundColor: Colors.green,
           ),
         );
@@ -86,7 +89,9 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: isDarkMode ? Colors.black.withOpacity(0.4) : Colors.black.withOpacity(0.1),
+                    color: isDarkMode
+                        ? Colors.black.withOpacity(0.4)
+                        : Colors.black.withOpacity(0.1),
                     blurRadius: 20,
                     offset: const Offset(0, 10),
                   ),
@@ -110,10 +115,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                   const SizedBox(height: 24),
                   const Text(
                     "Reset Password",
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 12),
                   const Text(
@@ -139,8 +141,11 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
                   TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text("Back to Login", style: TextStyle(color: Colors.grey)),
-                  )
+                    child: const Text(
+                      "Back to Login",
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                  ),
                 ],
               ),
             ),

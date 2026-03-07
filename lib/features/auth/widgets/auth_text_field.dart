@@ -27,7 +27,8 @@ class AuthTextField extends StatelessWidget {
       obscureText: obscure,
       keyboardType: keyboardType,
       validator: validator, // Hooking up the validator
-      autovalidateMode: AutovalidateMode.onUserInteraction, // Shows errors as they type
+      autovalidateMode:
+          AutovalidateMode.onUserInteraction, // Shows errors as they type
       decoration: InputDecoration(
         hintText: hint,
         prefixIcon: Icon(icon),

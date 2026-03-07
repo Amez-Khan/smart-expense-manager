@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'dashboard_page.dart';
+import '../../dashboard/pages/dashboard_page.dart';
 import 'login_page.dart';
 import 'verify_email_page.dart'; // Import the new page
 

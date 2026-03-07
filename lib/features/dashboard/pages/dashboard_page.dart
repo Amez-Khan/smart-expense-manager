@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart'; // For formatting the date beautifully
-import 'package:smart_expense_manager/features/auth/presentation/pages/profile_page.dart';
 
 import '../../../../main.dart';
-import '../../../dashboard/models/expense_model.dart';
-import '../../../dashboard/services/expense_service.dart';
-import '../../../dashboard/services/notification_service.dart';
-import '../../../dashboard/services/user_service.dart';
-import '../widget/add_expense_bottom_sheet.dart'; // Your exact path
+import '../../../../core/models/expense_model.dart';
+import '../../../../core/services/expense_service.dart';
+import '../../../../core/services/notification_service.dart';
+import '../../../../core/services/user_service.dart';
+import '../../expenses/pages/all_expenses_page.dart';
+import '../../profile/pages/profile_page.dart';
+import '../widgets/add_expense_bottom_sheet.dart'; // Your exact path
 
 // Changed from StatelessWidget to StatefulWidget to handle dynamic data
 class DashboardPage extends StatefulWidget {
@@ -173,6 +174,20 @@ class _DashboardPageState extends State<DashboardPage> {
           ],
         ),
         actions: [
+          // --- NEW: SEARCH / TRANSACTIONS BUTTON ---
+          IconButton(
+            icon: const Icon(Icons.search_rounded, color: Colors.white),
+            tooltip: 'Search Transactions',
+            onPressed: () {
+              // Navigate to our new Search Page
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AllExpensesPage(),
+                ),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(
               Icons.account_circle_outlined,
@@ -248,7 +263,12 @@ class _DashboardPageState extends State<DashboardPage> {
           // --- NEW: Calculate Today's Total ---
           final now = DateTime.now();
           final double todaysTotal = allExpenses
-              .where((e) => e.date.year == now.year && e.date.month == now.month && e.date.day == now.day)
+              .where(
+                (e) =>
+                    e.date.year == now.year &&
+                    e.date.month == now.month &&
+                    e.date.day == now.day,
+              )
               .fold(0.0, (sum, item) => sum + item.amount);
           // ---------------------------------------------------------
 
@@ -424,33 +444,46 @@ class _DashboardPageState extends State<DashboardPage> {
                                         fontWeight: FontWeight.bold,
                                       ),
                                       maxLines: 1,
-                                      overflow: TextOverflow.ellipsis, // Prevents errors if the number gets huge!
+                                      overflow: TextOverflow
+                                          .ellipsis, // Prevents errors if the number gets huge!
                                     );
                                   },
                                 ),
                               ),
 
                               // Right Side: Today's Spend Pill
-                              if (_selectedMonth.month == now.month && _selectedMonth.year == now.year) ...[
+                              if (_selectedMonth.month == now.month &&
+                                  _selectedMonth.year == now.year) ...[
                                 const SizedBox(width: 8),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 6,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: Colors.white.withOpacity(0.15),
-                                    borderRadius: BorderRadius.circular(20), // Made it a perfectly rounded pill
+                                    borderRadius: BorderRadius.circular(
+                                      20,
+                                    ), // Made it a perfectly rounded pill
                                   ),
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      const Icon(Icons.today_rounded, color: Colors.white, size: 14),
+                                      const Icon(
+                                        Icons.today_rounded,
+                                        color: Colors.white,
+                                        size: 14,
+                                      ),
                                       const SizedBox(width: 6),
                                       ValueListenableBuilder<String>(
                                         valueListenable: currencyNotifier,
                                         builder: (context, symbol, child) {
                                           return Text(
                                             "Today's: $symbol${todaysTotal.toStringAsFixed(2)}",
-                                            style:  TextStyle(
-                                              color: Colors.white.withOpacity(0.8),
+                                            style: TextStyle(
+                                              color: Colors.white.withOpacity(
+                                                0.8,
+                                              ),
                                               fontSize: 12,
                                               fontWeight: FontWeight.w600,
                                             ),

@@ -12,7 +12,8 @@ class NotificationService {
   factory NotificationService() => _instance;
   NotificationService._internal();
 
-  final FlutterLocalNotificationsPlugin _notificationsPlugin = FlutterLocalNotificationsPlugin();
+  final FlutterLocalNotificationsPlugin _notificationsPlugin =
+      FlutterLocalNotificationsPlugin();
 
   // 2. Initialize the Service
   Future<void> init() async {
@@ -28,13 +29,15 @@ class NotificationService {
     tz.setLocalLocation(tz.getLocation(timeZoneName));
     debugPrint("🌍 TIMEZONE SUCCESSFULLY SET TO: $timeZoneName");
 
-    const AndroidInitializationSettings androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const AndroidInitializationSettings androidSettings =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
 
-    const DarwinInitializationSettings iosSettings = DarwinInitializationSettings(
-      requestAlertPermission: true,
-      requestBadgePermission: true,
-      requestSoundPermission: true,
-    );
+    const DarwinInitializationSettings iosSettings =
+        DarwinInitializationSettings(
+          requestAlertPermission: true,
+          requestBadgePermission: true,
+          requestSoundPermission: true,
+        );
 
     const InitializationSettings initSettings = InitializationSettings(
       android: androidSettings,
@@ -52,11 +55,21 @@ class NotificationService {
     }
 
     if (defaultTargetPlatform == TargetPlatform.android) {
-      final androidImplementation = _notificationsPlugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+      final androidImplementation = _notificationsPlugin
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >();
       await androidImplementation?.requestNotificationsPermission();
     } else if (defaultTargetPlatform == TargetPlatform.iOS) {
-      final iosImplementation = _notificationsPlugin.resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>();
-      await iosImplementation?.requestPermissions(alert: true, badge: true, sound: true);
+      final iosImplementation = _notificationsPlugin
+          .resolvePlatformSpecificImplementation<
+            IOSFlutterLocalNotificationsPlugin
+          >();
+      await iosImplementation?.requestPermissions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
     }
   }
 
@@ -64,7 +77,8 @@ class NotificationService {
   Future<void> showBudgetWarning({required double percentageUsed}) async {
     final formattedPercentage = (percentageUsed * 100).toStringAsFixed(0);
     final String title = 'Budget Alert';
-    final String body = 'You have utilized $formattedPercentage% of your monthly budget. Spend carefully.';
+    final String body =
+        'You have utilized $formattedPercentage% of your monthly budget. Spend carefully.';
 
     // --- WEB EXECUTION ---
     if (kIsWeb) {
@@ -80,14 +94,15 @@ class NotificationService {
     }
 
     // --- MOBILE EXECUTION ---
-    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-      'budget_alerts',
-      'Budget Alerts',
-      channelDescription: 'Notifications for monthly budget limits',
-      importance: Importance.high,
-      priority: Priority.high,
-      color: Color(0xFF2563EB),
-    );
+    const AndroidNotificationDetails androidDetails =
+        AndroidNotificationDetails(
+          'budget_alerts',
+          'Budget Alerts',
+          channelDescription: 'Notifications for monthly budget limits',
+          importance: Importance.high,
+          priority: Priority.high,
+          color: Color(0xFF2563EB),
+        );
 
     const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
       presentAlert: true,
@@ -115,7 +130,14 @@ class NotificationService {
     final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
 
     // Set for 8:00 PM (20:00) today
-    tz.TZDateTime scheduledDate = tz.TZDateTime(tz.local, now.year, now.month, now.day, 20, 0);
+    tz.TZDateTime scheduledDate = tz.TZDateTime(
+      tz.local,
+      now.year,
+      now.month,
+      now.day,
+      20,
+      0,
+    );
 
     // If it's already past 8:00 PM, schedule for tomorrow
     if (scheduledDate.isBefore(now)) {
@@ -124,14 +146,15 @@ class NotificationService {
 
     debugPrint("⏰ ALARM SET FOR: $scheduledDate");
 
-    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-      'daily_reminders',
-      'Daily Reminders',
-      channelDescription: 'Evening reminder to log your daily expenses',
-      importance: Importance.defaultImportance,
-      priority: Priority.defaultPriority,
-      color: Color(0xFF2563EB),
-    );
+    const AndroidNotificationDetails androidDetails =
+        AndroidNotificationDetails(
+          'daily_reminders',
+          'Daily Reminders',
+          channelDescription: 'Evening reminder to log your daily expenses',
+          importance: Importance.defaultImportance,
+          priority: Priority.defaultPriority,
+          color: Color(0xFF2563EB),
+        );
 
     const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
       presentAlert: true,

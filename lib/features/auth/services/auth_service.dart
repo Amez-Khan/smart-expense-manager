@@ -5,7 +5,11 @@ class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   // Future function to handle registration
-  Future<User?> signUpWithEmailPassword(String name, String email, String password) async {
+  Future<User?> signUpWithEmailPassword(
+    String name,
+    String email,
+    String password,
+  ) async {
     try {
       // This is the actual call to Firebase
       UserCredential credential = await _auth.createUserWithEmailAndPassword(
@@ -46,7 +50,9 @@ class AuthService {
       return credential.user;
     } on FirebaseAuthException catch (e) {
       // Keep error handling simple and direct
-      if (e.code == 'user-not-found' || e.code == 'wrong-password' || e.code == 'invalid-credential') {
+      if (e.code == 'user-not-found' ||
+          e.code == 'wrong-password' ||
+          e.code == 'invalid-credential') {
         throw Exception('Invalid email or password.');
       }
       throw Exception(e.message ?? 'Login failed.');

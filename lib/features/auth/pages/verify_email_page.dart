@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../widget/auth_button.dart';
+
+import '../widgets/auth_button.dart';
 
 class VerifyEmailPage extends StatefulWidget {
   const VerifyEmailPage({super.key});
@@ -80,7 +81,9 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
                     child: Icon(
                       Icons.mark_email_unread_outlined,
                       size: 48,
-                      color: isDarkMode ? Colors.blueAccent : const Color(0xFF2563EB),
+                      color: isDarkMode
+                          ? Colors.blueAccent
+                          : const Color(0xFF2563EB),
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -109,7 +112,8 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
                   // Subtle, integrated spam hint
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center, // Keeps icon aligned if text wraps
+                    crossAxisAlignment: CrossAxisAlignment
+                        .center, // Keeps icon aligned if text wraps
                     children: [
                       Icon(
                         Icons.info_outline_rounded,
@@ -146,7 +150,8 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
                       TextButton(
                         onPressed: () async {
                           try {
-                            await FirebaseAuth.instance.currentUser?.sendEmailVerification();
+                            await FirebaseAuth.instance.currentUser
+                                ?.sendEmailVerification();
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
@@ -158,7 +163,9 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                  content: Text('Please wait a moment before resending.'),
+                                  content: Text(
+                                    'Please wait a moment before resending.',
+                                  ),
                                 ),
                               );
                             }

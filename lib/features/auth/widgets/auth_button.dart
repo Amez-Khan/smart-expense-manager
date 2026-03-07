@@ -4,11 +4,7 @@ class AuthButton extends StatelessWidget {
   final String text;
   final VoidCallback onPressed;
 
-  const AuthButton({
-    super.key,
-    required this.text,
-    required this.onPressed,
-  });
+  const AuthButton({super.key, required this.text, required this.onPressed});
 
   @override
   Widget build(BuildContext context) {
@@ -24,10 +20,7 @@ class AuthButton extends StatelessWidget {
         ),
         child: Text(
           text,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
       ),
     );

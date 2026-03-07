@@ -6,9 +6,9 @@ import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import 'features/auth/presentation/pages/auth_gate.dart';
-import 'features/dashboard/services/notification_service.dart';
-import 'features/dashboard/services/user_service.dart';
+import 'core/services/notification_service.dart';
+import 'core/services/user_service.dart';
+import 'features/auth/pages/auth_gate.dart';
 import 'firebase_options.dart';
 
 // Helper to compare version numbers (returns true if an update is needed)
@@ -31,7 +31,9 @@ bool _isVersionLower(String current, String required) {
 // Global state variables - these "broadcast" changes to the whole app
 final ValueNotifier<String> currencyNotifier = ValueNotifier<String>('\$');
 final ValueNotifier<double> budgetNotifier = ValueNotifier<double>(0.0);
-final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier<ThemeMode>(ThemeMode.light);
+final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier<ThemeMode>(
+  ThemeMode.light,
+);
 
 // 1. App entry point
 void main() async {
@@ -52,12 +54,14 @@ void main() async {
 
   try {
     final remoteConfig = FirebaseRemoteConfig.instance;
-    await remoteConfig.setConfigSettings(RemoteConfigSettings(
-      fetchTimeout: const Duration(seconds: 10),
-      // In production, set this to 1 hour (Duration(hours: 1)).
-      // For testing, we use 0 so it fetches instantly!
-      minimumFetchInterval: const Duration(seconds: 0),
-    ));
+    await remoteConfig.setConfigSettings(
+      RemoteConfigSettings(
+        fetchTimeout: const Duration(seconds: 10),
+        // In production, set this to 1 hour (Duration(hours: 1)).
+        // For testing, we use 0 so it fetches instantly!
+        minimumFetchInterval: const Duration(seconds: 0),
+      ),
+    );
     await remoteConfig.fetchAndActivate();
 
     final requiredVersion = remoteConfig.getString('minimum_required_version');
@@ -67,7 +71,9 @@ void main() async {
     final currentVersion = packageInfo.version;
 
     requiresUpdate = _isVersionLower(currentVersion, requiredVersion);
-    debugPrint("Current Version: $currentVersion | Required: $requiredVersion | Needs Update: $requiresUpdate");
+    debugPrint(
+      "Current Version: $currentVersion | Required: $requiredVersion | Needs Update: $requiresUpdate",
+    );
   } catch (e) {
     debugPrint("Failed to fetch remote config: $e");
   }
@@ -153,7 +159,9 @@ class SmartExpenseApp extends StatelessWidget {
           debugShowCheckedModeBanner: false,
           themeMode: mode,
           theme: ThemeData(
-            colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF1E3A8A)),
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: const Color(0xFF1E3A8A),
+            ),
             useMaterial3: true,
           ),
           darkTheme: ThemeData.dark(useMaterial3: true),
@@ -186,7 +194,9 @@ class UpdateRequiredPage extends StatelessWidget {
 
     return Scaffold(
       // 1. Softer background colors for a more polished feel
-      backgroundColor: isDark ? const Color(0xFF121212) : const Color(0xFFF8FAFC),
+      backgroundColor: isDark
+          ? const Color(0xFF121212)
+          : const Color(0xFFF8FAFC),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24.0),
@@ -198,7 +208,9 @@ class UpdateRequiredPage extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: isDark ? primaryColor.withOpacity(0.05) : primaryColor.withOpacity(0.05),
+                  color: isDark
+                      ? primaryColor.withOpacity(0.05)
+                      : primaryColor.withOpacity(0.05),
                   shape: BoxShape.circle,
                   border: Border.all(
                     color: primaryColor.withOpacity(0.1),
@@ -212,7 +224,8 @@ class UpdateRequiredPage extends StatelessWidget {
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
-                    Icons.rocket_launch_rounded, // Feels more like an upgrade than a system alert
+                    Icons
+                        .rocket_launch_rounded, // Feels more like an upgrade than a system alert
                     size: 64,
                     color: isDark ? Colors.blue[400] : primaryColor,
                   ),
@@ -264,7 +277,8 @@ class UpdateRequiredPage extends StatelessWidget {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: primaryColor,
                     foregroundColor: Colors.white,
-                    elevation: 0, // We handle elevation with the custom BoxShadow above
+                    elevation:
+                        0, // We handle elevation with the custom BoxShadow above
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),

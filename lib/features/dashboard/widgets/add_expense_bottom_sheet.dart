@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../../../main.dart';
-import '../../../dashboard/models/expense_model.dart';
-import '../../../dashboard/services/expense_service.dart';
-
+import '../../../../core/models/expense_model.dart';
+import '../../../../core/services/expense_service.dart';
 
 class AddExpenseBottomSheet extends StatefulWidget {
-// ARCHITECT FIX: Accept an optional expense. If it's null, we are creating. If it has data, we are editing!
+  // ARCHITECT FIX: Accept an optional expense. If it's null, we are creating. If it has data, we are editing!
   final ExpenseModel? existingExpense;
 
   const AddExpenseBottomSheet({super.key, this.existingExpense});
@@ -19,7 +18,13 @@ class _AddExpenseBottomSheetState extends State<AddExpenseBottomSheet> {
   final _amountController = TextEditingController();
   String _selectedCategory = 'Food';
   DateTime _selectedDate = DateTime.now();
-  final List<String> _categories = ['Food', 'Transport', 'Entertainment', 'Bills', 'Other'];
+  final List<String> _categories = [
+    'Food',
+    'Transport',
+    'Entertainment',
+    'Bills',
+    'Other',
+  ];
 
   final ExpenseService _expenseService = ExpenseService();
   bool _isLoading = false;
@@ -35,6 +40,7 @@ class _AddExpenseBottomSheetState extends State<AddExpenseBottomSheet> {
       _selectedDate = widget.existingExpense!.date;
     }
   }
+
   @override
   void dispose() {
     _titleController.dispose();
@@ -60,7 +66,10 @@ class _AddExpenseBottomSheetState extends State<AddExpenseBottomSheet> {
   Future<void> _saveExpense() async {
     if (_titleController.text.isEmpty || _amountController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a title and amount'), backgroundColor: Colors.red),
+        const SnackBar(
+          content: Text('Please enter a title and amount'),
+          backgroundColor: Colors.red,
+        ),
       );
       return;
     }
@@ -68,7 +77,10 @@ class _AddExpenseBottomSheetState extends State<AddExpenseBottomSheet> {
     final amount = double.tryParse(_amountController.text);
     if (amount == null || amount <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a valid amount'), backgroundColor: Colors.red),
+        const SnackBar(
+          content: Text('Please enter a valid amount'),
+          backgroundColor: Colors.red,
+        ),
       );
       return;
     }
@@ -90,12 +102,16 @@ class _AddExpenseBottomSheetState extends State<AddExpenseBottomSheet> {
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Expense updated successfully!'), backgroundColor: Colors.green),
+            const SnackBar(
+              content: Text('Expense updated successfully!'),
+              backgroundColor: Colors.green,
+            ),
           );
         }
       } else {
         // --- WE ARE CREATING NEW ---
-        final String uniqueId = DateTime.now().millisecondsSinceEpoch.toString();
+        final String uniqueId = DateTime.now().millisecondsSinceEpoch
+            .toString();
         final newExpense = ExpenseModel(
           id: uniqueId,
           title: _titleController.text.trim(),
@@ -107,15 +123,18 @@ class _AddExpenseBottomSheetState extends State<AddExpenseBottomSheet> {
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Expense added successfully!'), backgroundColor: Colors.green),
+            const SnackBar(
+              content: Text('Expense added successfully!'),
+              backgroundColor: Colors.green,
+            ),
           );
         }
       }
 
       if (mounted) {
         Navigator.pop(context); // Close the sheet
-      }}
-    catch (e) {
+      }
+    } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
@@ -152,7 +171,9 @@ class _AddExpenseBottomSheetState extends State<AddExpenseBottomSheet> {
               children: [
                 Text(
                   // [FIX] Update title: White in Dark Mode, Blue in Light Mode
-                  widget.existingExpense != null ? 'Edit Expense' : 'Add New Expense',
+                  widget.existingExpense != null
+                      ? 'Edit Expense'
+                      : 'Add New Expense',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -172,7 +193,9 @@ class _AddExpenseBottomSheetState extends State<AddExpenseBottomSheet> {
               decoration: InputDecoration(
                 labelText: 'Expense Title (e.g. Coffee)',
                 prefixIcon: const Icon(Icons.edit_note),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
             const SizedBox(height: 16),
@@ -182,18 +205,28 @@ class _AddExpenseBottomSheetState extends State<AddExpenseBottomSheet> {
               builder: (context, currency, child) {
                 return TextField(
                   controller: _amountController,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
                   decoration: InputDecoration(
-                    labelText: 'Amount ($currency)', // Dynamically shows (₹), (€), etc.
-                    prefixIcon: const Icon(Icons.payments), // Generic cash icon instead of $
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    labelText:
+                        'Amount ($currency)', // Dynamically shows (₹), (€), etc.
+                    prefixIcon: const Icon(
+                      Icons.payments,
+                    ), // Generic cash icon instead of $
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 );
               },
             ),
             const SizedBox(height: 24),
 
-            const Text('Category', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+            const Text(
+              'Category',
+              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey),
+            ),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8.0,
@@ -208,7 +241,9 @@ class _AddExpenseBottomSheetState extends State<AddExpenseBottomSheet> {
                     });
                   },
                   // [FIX] Dynamic chip background colors
-                  selectedColor: isDark ? const Color(0xFF2563EB) : Colors.blue.withOpacity(0.2),
+                  selectedColor: isDark
+                      ? const Color(0xFF2563EB)
+                      : Colors.blue.withOpacity(0.2),
                   backgroundColor: isDark ? Colors.grey[800] : Colors.grey[200],
                   side: BorderSide.none, // Removes default weird borders
                   // [FIX] Dynamic text colors so they are always readable
@@ -216,7 +251,9 @@ class _AddExpenseBottomSheetState extends State<AddExpenseBottomSheet> {
                     color: isSelected
                         ? (isDark ? Colors.white : const Color(0xFF1E3A8A))
                         : (isDark ? Colors.white70 : Colors.black),
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    fontWeight: isSelected
+                        ? FontWeight.bold
+                        : FontWeight.normal,
                   ),
                 );
               }).toList(),
@@ -245,16 +282,28 @@ class _AddExpenseBottomSheetState extends State<AddExpenseBottomSheet> {
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF2563EB),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
                 ),
                 onPressed: _isLoading ? null : _saveExpense,
                 child: _isLoading
                     ? const SizedBox(
-                    height: 24,
-                    width: 24,
-                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
-                )
-                    : const Text('Save Expense', style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold)),
+                        height: 24,
+                        width: 24,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : const Text(
+                        'Save Expense',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
               ),
             ),
           ],
