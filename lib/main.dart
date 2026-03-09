@@ -34,6 +34,7 @@ final ValueNotifier<double> budgetNotifier = ValueNotifier<double>(0.0);
 final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier<ThemeMode>(
   ThemeMode.light,
 );
+final ValueNotifier<String> appStoreUrlNotifier = ValueNotifier<String>('');
 
 // 1. App entry point
 void main() async {
@@ -66,7 +67,7 @@ void main() async {
 
     final requiredVersion = remoteConfig.getString('minimum_required_version');
     storeUrl = remoteConfig.getString('update_store_url');
-
+    appStoreUrlNotifier.value = storeUrl;
     final packageInfo = await PackageInfo.fromPlatform();
     final currentVersion = packageInfo.version;
 

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../main.dart';
 import '../../../../core/services/user_service.dart';
@@ -361,200 +363,129 @@ class ProfilePage extends StatelessWidget {
   }
 
   // --- NEW: Help & Support Bottom Sheet (Dark Mode Ready) ---
+// --- UPDATED: Functional Help & Support ---
   void _showHelpSupportBottomSheet(BuildContext context) {
-    // 1. Check the current theme brightness
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      // 2. Swap background color based on theme
       backgroundColor: isDark ? Colors.grey[900] : Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
       ),
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.6,
-        minChildSize: 0.4,
-        maxChildSize: 0.9,
-        expand: false,
-        builder: (_, scrollController) {
-          return Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: ListView(
-              controller: scrollController,
-              children: [
-                // Handle bar
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: isDark ? Colors.grey[700] : Colors.grey[300],
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
+      builder: (context) => Padding(
+        // Use wrap to make it take only as much space as needed
+        padding: EdgeInsets.only(
+            left: 24,
+            right: 24,
+            top: 12,
+            bottom: MediaQuery.of(context).padding.bottom + 24
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min, // 🔥 CRITICAL: Wraps content tightly
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Handle Bar
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.grey[700] : Colors.grey[300],
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                const SizedBox(height: 20),
-
-                Text(
-                  "Help & Support",
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    // Swap the dark blue for pure white in Dark Mode
-                    color: isDark ? Colors.white : const Color(0xFF1E3A8A),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  "How can we help you manage your expenses today?",
-                  style: TextStyle(
-                    color: isDark ? Colors.grey[400] : Colors.grey[600],
-                    fontSize: 14,
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                Text(
-                  "Frequently Asked Questions",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 12),
-
-                // FAQ 1
-                ExpansionTile(
-                  iconColor: isDark
-                      ? Colors.blue[300]
-                      : const Color(0xFF2563EB),
-                  textColor: isDark
-                      ? Colors.blue[300]
-                      : const Color(0xFF2563EB),
-                  collapsedIconColor: isDark ? Colors.white70 : Colors.black54,
-                  collapsedTextColor: isDark ? Colors.white : Colors.black87,
-                  title: const Text(
-                    "How do I edit or delete an expense?",
-                    style: TextStyle(fontWeight: FontWeight.w500),
-                  ),
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Text(
-                        "On the Dashboard, tap any expense to edit it. To delete an expense, simply swipe the expense card to the left.",
-                        style: TextStyle(
-                          color: isDark ? Colors.grey[300] : Colors.grey[700],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-
-                // FAQ 2
-                ExpansionTile(
-                  iconColor: isDark
-                      ? Colors.blue[300]
-                      : const Color(0xFF2563EB),
-                  textColor: isDark
-                      ? Colors.blue[300]
-                      : const Color(0xFF2563EB),
-                  collapsedIconColor: isDark ? Colors.white70 : Colors.black54,
-                  collapsedTextColor: isDark ? Colors.white : Colors.black87,
-                  title: const Text(
-                    "Will my data sync if I get a new phone?",
-                    style: TextStyle(fontWeight: FontWeight.w500),
-                  ),
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Text(
-                        "Yes! All your expenses, your monthly budget, and your currency preferences are securely backed up to your account. Just log in with your email on any device.",
-                        style: TextStyle(
-                          color: isDark ? Colors.grey[300] : Colors.grey[700],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 24),
-                Divider(color: isDark ? Colors.grey[800] : Colors.grey[300]),
-                const SizedBox(height: 16),
-
-                // Contact Section
-                Text(
-                  "Still need help?",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: CircleAvatar(
-                    backgroundColor: isDark
-                        ? const Color(0xFF2563EB).withOpacity(0.2)
-                        : Colors.blue.withOpacity(0.1),
-                    child: Icon(
-                      Icons.email_outlined,
-                      color: isDark
-                          ? Colors.blue[300]
-                          : const Color(0xFF2563EB),
-                    ),
-                  ),
-                  title: Text(
-                    "Email Support",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: isDark ? Colors.white : Colors.black87,
-                    ),
-                  ),
-                  subtitle: Text(
-                    "support@smartexpense.com",
-                    style: TextStyle(
-                      color: isDark ? Colors.grey[400] : Colors.grey[600],
-                    ),
-                  ),
-                  trailing: Icon(
-                    Icons.arrow_forward_ios,
-                    size: 16,
-                    color: isDark ? Colors.white54 : Colors.black54,
-                  ),
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("Email client integration coming soon!"),
-                      ),
-                    );
-                  },
-                ),
-
-                // Add this at the bottom of your ListView in ProfilePage
-                const Divider(),
-                ListTile(
-                  leading: const Icon(Icons.code_rounded, color: Colors.grey),
-                  title: const Text('About the Developer'),
-                  subtitle: const Text('Designed & built by Amez Khan Azeez Khan'),
-                  onTap: () {
-                    showAboutDialog(
-                      context: context,
-                      applicationName: 'Smart Expense',
-                      applicationVersion: '1.0.1',
-                      applicationIcon: const Icon(Icons.account_balance_wallet, size: 40, color: Colors.blue),
-                      applicationLegalese: 'An independent project showcasing Clean Architecture and Firebase integration.',
-                    );
-                  },
-                ),
-              ],
+              ),
             ),
-          );
-        },
+            const SizedBox(height: 20),
+            Text(
+              "Help & Support",
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white : const Color(0xFF1E3A8A),
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            _buildSupportAction(
+              context,
+              icon: Icons.email_outlined,
+              color: Colors.blue,
+              title: "Email Support",
+              subtitle: "amez8409khan@gmail.com",
+              onTap: _launchEmail,
+            ),
+            const SizedBox(height: 8),
+            _buildSupportAction(
+              context,
+              icon: Icons.privacy_tip_outlined,
+              color: Colors.green,
+              title: "Privacy Policy",
+              subtitle: "How we protect your data",
+              onTap: _launchPrivacyUrl,
+            ),
+            const SizedBox(height: 8),
+            _buildSupportAction(
+              context,
+              icon: Icons.share_outlined,
+              color: Colors.orange,
+              title: "Share App",
+              subtitle: "Invite your friends",
+              onTap: _shareApp,
+            ),
+
+            const SizedBox(height: 24),
+            const Divider(),
+
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.code_rounded, color: Colors.grey),
+              title: const Text('About the Developer', style: TextStyle(fontSize: 14)),
+              subtitle: const Text('Designed & built by Amez Khan', style: TextStyle(fontSize: 12)),
+              onTap: () {
+                showAboutDialog(
+                  context: context,
+                  applicationName: 'Smart Expense',
+                  applicationVersion: '1.0.4',
+                  applicationIcon: const Icon(Icons.account_balance_wallet, size: 40, color: Colors.blue),
+                );
+              },
+            ),
+          ],
+        ),
       ),
+    );
+  }
+
+  // --- Helper Widget for Actions ---
+  Widget _buildSupportAction(BuildContext context, {
+    required IconData icon,
+    required Color color,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return ListTile(
+      onTap: onTap,
+      contentPadding: EdgeInsets.zero,
+      leading: CircleAvatar(
+        backgroundColor: color.withOpacity(0.1),
+        child: Icon(icon, color: color),
+      ),
+      title: Text(
+        title,
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+          color: isDark ? Colors.white : Colors.black87,
+        ),
+      ),
+      subtitle: Text(
+        subtitle,
+        style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600]),
+      ),
+      trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
     );
   }
 
@@ -614,6 +545,44 @@ class ProfilePage extends StatelessWidget {
         }
         Navigator.pop(context);
       },
+    );
+  }
+
+  // Helper to open your actual email app
+  Future<void> _launchEmail() async {
+    final Uri emailUri = Uri(
+      scheme: 'mailto',
+      path: 'amez.developer@gmail.com', // Your contact from the profile
+      query: 'subject=Smart Expense Support Request',
+    );
+    if (await canLaunchUrl(emailUri)) {
+      await launchUrl(emailUri);
+    }
+  }
+
+// Helper to open your future Privacy Policy website
+  Future<void> _launchPrivacyUrl() async {
+    final Uri url = Uri.parse('https://www.termsfeed.com/live/8f3e0738-d012-4d85-abf3-481f78e0ff31');
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  Future<void> _launchURL(String url) async {
+    final Uri uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+  void _shareApp() {
+    // Use the dynamic URL from main.dart, fallback to GitHub only if Remote Config fails
+    final String liveUrl = appStoreUrlNotifier.value.isNotEmpty
+        ? appStoreUrlNotifier.value
+        : "https://github.com/Amez-Khan/smart-expense-manager/releases";
+
+    Share.share(
+      "Check out Smart Expense Manager! Download it here: $liveUrl",
+      subject: "Manage your expenses easily!",
     );
   }
 }
