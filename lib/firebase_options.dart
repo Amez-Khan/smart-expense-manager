@@ -83,4 +83,5 @@ class DefaultFirebaseOptions {
     authDomain: 'smart-expense-manager-f4125.firebaseapp.com',
     storageBucket: 'smart-expense-manager-f4125.firebasestorage.app',
   );
+
 }

@@ -182,6 +182,19 @@ class NotificationService {
     }
   }
 
+  // --- NEW: Manually trigger a token sync after login/signup ---
+  Future<void> syncTokenNow() async {
+    try {
+      String? token = await _fcm.getToken();
+      if (token != null) {
+        debugPrint("🔄 Manually syncing token after auth event...");
+        await _saveTokenToFirestore(token);
+      }
+    } catch (e) {
+      debugPrint("❌ Failed to sync token manually: $e");
+    }
+  }
+
   // --- HELPER: Show Cloud messages while app is active ---
   Future<void> _showFcmLocalNotification(String title, String body) async {
     const AndroidNotificationDetails androidDetails =

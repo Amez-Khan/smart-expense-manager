@@ -1,5 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 
+import '../../../core/services/notification_service.dart';
+
 class AuthService {
   // Create a private instance of FirebaseAuth
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -9,7 +11,8 @@ class AuthService {
     String name,
     String email,
     String password,
-  ) async {
+  )
+  async {
     try {
       // This is the actual call to Firebase
       UserCredential credential = await _auth.createUserWithEmailAndPassword(
@@ -22,6 +25,9 @@ class AuthService {
 
       // ARCHITECT FIX: Send verification email immediately after creation
       await credential.user?.sendEmailVerification();
+
+// 3. 🔥 NEW: Sync the FCM token now that the user is fully created and named!
+      await NotificationService().syncTokenNow();
 
       return credential.user;
 
@@ -47,6 +53,9 @@ class AuthService {
         email: email,
         password: password,
       );
+      // 🔥 NEW: Sync the FCM token on a fresh login!
+      await NotificationService().syncTokenNow();
+
       return credential.user;
     } on FirebaseAuthException catch (e) {
       // Keep error handling simple and direct
@@ -69,4 +78,6 @@ class AuthService {
       throw Exception(e.toString());
     }
   }
+
+
 }
