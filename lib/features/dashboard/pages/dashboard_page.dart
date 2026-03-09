@@ -7,9 +7,11 @@ import '../../../../core/models/expense_model.dart';
 import '../../../../core/services/expense_service.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../core/services/user_service.dart';
+import '../../analytics/pages/analytics_page.dart';
 import '../../expenses/pages/all_expenses_page.dart';
 import '../../profile/pages/profile_page.dart';
-import '../widgets/add_expense_bottom_sheet.dart'; // Your exact path
+import '../widgets/add_expense_bottom_sheet.dart';
+import '../widgets/insights_teaser_card.dart'; // Your exact path
 
 // Changed from StatelessWidget to StatefulWidget to handle dynamic data
 class DashboardPage extends StatefulWidget {
@@ -174,20 +176,7 @@ class _DashboardPageState extends State<DashboardPage> {
           ],
         ),
         actions: [
-          // --- NEW: SEARCH / TRANSACTIONS BUTTON ---
-          IconButton(
-            icon: const Icon(Icons.search_rounded, color: Colors.white),
-            tooltip: 'Search Transactions',
-            onPressed: () {
-              // Navigate to our new Search Page
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const AllExpensesPage(),
-                ),
-              );
-            },
-          ),
+
           IconButton(
             icon: const Icon(
               Icons.account_circle_outlined,
@@ -288,14 +277,6 @@ class _DashboardPageState extends State<DashboardPage> {
             }
           });
 
-          final Map<String, double> categoryTotals = {};
-          for (var expense in expenses) {
-            categoryTotals[expense.category] =
-                (categoryTotals[expense.category] ?? 0) + expense.amount;
-          }
-
-          final sortedCategories = categoryTotals.entries.toList()
-            ..sort((a, b) => b.value.compareTo(a.value));
           // --------------------------------------------
 
           return SingleChildScrollView(
@@ -537,91 +518,91 @@ class _DashboardPageState extends State<DashboardPage> {
                   ),
                 ),
                 const SizedBox(height: 16), // Reduced gap from 24 to 16
-                // --- TIGHTER CATEGORY BREAKDOWN ---
-                if (expenses.isNotEmpty) ...[
-                  const Text(
-                    "Spending Breakdown",
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey,
-                    ),
-                  ),
-                  const SizedBox(height: 8), // Reduced gap
-                  // Wrap the breakdown in a limited-size box if there are too many categories
-                  ...sortedCategories.map((entry) {
-                    final categoryName = entry.key;
-                    final categoryAmount = entry.value;
-                    final percentage = totalSpent > 0
-                        ? (categoryAmount / totalSpent)
-                        : 0.0;
 
-                    return Padding(
-                      // Reduced bottom padding from 12 to 8
-                      padding: const EdgeInsets.only(bottom: 8.0),
-                      child: Row(
-                        children: [
-                          Icon(
-                            _getCategoryIcon(categoryName),
-                            size: 18,
-                            color: const Color(0xFF2563EB),
-                          ), // Slightly smaller icon
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      categoryName,
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w500,
-                                        // [FIX] This ensures text is black in light mode and white in dark mode
-                                        color: isDark
-                                            ? Colors.white
-                                            : Colors.black87,
-                                      ),
-                                    ),
 
-                                    //ValueListenableBuilder change the moment the user picks a new symbol
-                                    ValueListenableBuilder<String>(
-                                      valueListenable: currencyNotifier,
-                                      builder: (context, symbol, child) {
-                                        return Text(
-                                          "$symbol${categoryAmount.toStringAsFixed(2)}",
-                                          style: const TextStyle(
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 4),
-                                LinearProgressIndicator(
-                                  value: percentage,
-                                  // [FIX] Darker track color for Dark Mode
-                                  backgroundColor: isDark
-                                      ? Colors.grey[800]
-                                      : Colors.grey[200],
-                                  color: const Color(0xFF2563EB),
-                                  minHeight: 4, // Thinner progress bar
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                              ],
+                // --- QUICK ACTION BUTTONS (INSIGHTS & ALL EXPENSES) ---
+                Row(
+                  children: [
+                    // Left Button: Insights
+                    Expanded(
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => AnalyticsPage(selectedMonth: _selectedMonth)),                          );
+                        },
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          decoration: BoxDecoration(
+                            color: isDark ? const Color(0xFF1E1E1E) : Colors.blue.shade50,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: isDark ? Colors.grey[800]! : Colors.blue.shade100,
                             ),
                           ),
-                        ],
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.pie_chart_rounded, color: Color(0xFF2563EB), size: 18),
+                              const SizedBox(width: 8),
+                              Text(
+                                "Insights",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                  color: isDark ? Colors.white : Colors.black87,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
-                    );
-                  }),
-                  const SizedBox(height: 12), // Tighter gap
-                ],
+                    ),
+
+                    const SizedBox(width: 12), // Gap between buttons
+
+                    // Right Button: All Expenses
+                    Expanded(
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => AllExpensesPage(selectedMonth: _selectedMonth)),                          );
+                        },
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          decoration: BoxDecoration(
+                            color: isDark ? const Color(0xFF1E1E1E) : Colors.blue.shade50,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: isDark ? Colors.grey[800]! : Colors.blue.shade100,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              // Changed icon from search to list_alt for better context!
+                              const Icon(Icons.list_alt_rounded, color: Color(0xFF2563EB), size: 18),
+                              const SizedBox(width: 8),
+                              Text(
+                                "All Expenses",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                  color: isDark ? Colors.white : Colors.black87,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+
 
                 // ARCHITECT FIX: Only show headers and hints if there is data to interact with
                 if (expenses.isNotEmpty) ...[

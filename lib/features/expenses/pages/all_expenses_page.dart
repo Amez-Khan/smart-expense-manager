@@ -13,7 +13,8 @@ import '../../../../main.dart';
 import '../../dashboard/widgets/add_expense_bottom_sheet.dart';
 
 class AllExpensesPage extends StatefulWidget {
-  const AllExpensesPage({super.key});
+  final DateTime? selectedMonth; // <-- Add this
+  const AllExpensesPage({super.key, this.selectedMonth}); // <-- Update constructor
 
   @override
   State<AllExpensesPage> createState() => _AllExpensesPageState();
@@ -36,6 +37,10 @@ class _AllExpensesPageState extends State<AllExpensesPage> {
     super.initState();
     // Start the stream once when the page loads!
     _expensesStream = _expenseService.getUserExpenses();
+    // NEW: If they came from a specific month on the dashboard, auto-apply the filter!
+    if (widget.selectedMonth != null) {
+      _selectedTimeFilter = 'This Month';
+    }
   }
 
   final List<String> _categories = [
@@ -47,13 +52,25 @@ class _AllExpensesPageState extends State<AllExpensesPage> {
     'Other',
   ];
 
-  final List<String> _timeFilters = [
-    'All Time',
-    'Today',
-    'Last 7 Days',
-    'This Month',
-    'Last Month',
-  ];
+// --- SMART FILTER MENU ---
+  List<String> get _dynamicTimeFilters {
+    final now = DateTime.now();
+    final referenceDate = widget.selectedMonth ?? now;
+
+    // Check if the user is looking at the actual, current calendar month
+    final isCurrentRealMonth = referenceDate.year == now.year && referenceDate.month == now.month;
+
+    if (isCurrentRealMonth) {
+      // If they are in the present, show everything
+      return ['All Time', 'Today', 'Last 7 Days', 'This Month', 'Last Month'];
+    } else {
+      // If they are in the past, hide the confusing relative dates!
+      // (Note: I kept 'All Time' here just in case they want a quick way to
+      // clear the month filter and see all history, but you can delete it from
+      // this array if you want it strictly locked to the past months!)
+      return ['All Time', 'This Month', 'Last Month'];
+    }
+  }
 
   IconData _getCategoryIcon(String category) {
     switch (category) {
@@ -70,12 +87,33 @@ class _AllExpensesPageState extends State<AllExpensesPage> {
     }
   }
 
+  // --- DYNAMIC APPBAR TITLE ---
+  String _getAppBarTitle() {
+    final referenceDate = widget.selectedMonth ?? DateTime.now();
+
+    switch (_selectedTimeFilter) {
+      case 'Today':
+        return "Today's Expenses";
+      case 'Last 7 Days':
+        return "Last 7 Days";
+      case 'This Month':
+        return "${DateFormat('MMMM yyyy').format(referenceDate)} Expenses";
+      case 'Last Month':
+      // Safely calculate exactly one month ago from the reference date
+        final lastMonthDate = DateTime(referenceDate.year, referenceDate.month - 1);
+        return "${DateFormat('MMMM yyyy').format(lastMonthDate)} Expenses";
+      case 'All Time':
+      default:
+        return "All Expenses";
+    }
+  }
   // Native Export Logic (PDF & CSV)
   Future<void> _exportData(
     List<ExpenseModel> expenses,
     double total,
     String format,
-  ) async {
+  )
+  async {
     final output = await getTemporaryDirectory();
     final String timestamp = DateFormat(
       'yyyyMMdd_HHmmss',
@@ -132,7 +170,8 @@ class _AllExpensesPageState extends State<AllExpensesPage> {
       await Share.shareXFiles([
         XFile(file.path),
       ], text: 'My Expense Report (CSV)');
-    } else if (format == 'PDF') {
+    }
+    else if (format == 'PDF') {
       final pdf = pw.Document();
 
       // Grab the current user's name from Firebase.
@@ -295,9 +334,10 @@ class _AllExpensesPageState extends State<AllExpensesPage> {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF121212) : Colors.grey[50],
       appBar: AppBar(
-        title: const Text(
-          'All Expenses',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        // NEW: Calls your dynamic title generator
+        title: Text(
+            _getAppBarTitle(),
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)
         ),
         backgroundColor: const Color(0xFF1E3A8A),
         elevation: 0,
@@ -322,36 +362,25 @@ class _AllExpensesPageState extends State<AllExpensesPage> {
 
           // --- THE SIMPLIFIED FILTERING ENGINE ---
           final filteredExpenses = allExpenses.where((expense) {
-            final matchesCategory =
-                _selectedCategory == 'All' ||
-                expense.category == _selectedCategory;
-            final matchesSearch = expense.title.toLowerCase().contains(
-              _searchQuery,
-            );
+            final matchesCategory = _selectedCategory == 'All' || expense.category == _selectedCategory;
+            final matchesSearch = expense.title.toLowerCase().contains(_searchQuery);
 
-            // Clean, bug-free time logic
+            // NEW: Smart Time Logic
             bool matchesTime = true;
-            final now = DateTime.now();
+            final realNow = DateTime.now(); // Always actual today for "Today" filters
+            final referenceDate = widget.selectedMonth ?? realNow; // The dashboard month
 
             if (_selectedTimeFilter == 'Today') {
-              matchesTime =
-                  expense.date.year == now.year &&
-                  expense.date.month == now.month &&
-                  expense.date.day == now.day;
+              matchesTime = expense.date.year == realNow.year && expense.date.month == realNow.month && expense.date.day == realNow.day;
             } else if (_selectedTimeFilter == 'Last 7 Days') {
-              matchesTime = expense.date.isAfter(
-                now.subtract(const Duration(days: 7)),
-              );
+              matchesTime = expense.date.isAfter(realNow.subtract(const Duration(days: 7)));
             } else if (_selectedTimeFilter == 'This Month') {
-              matchesTime =
-                  expense.date.year == now.year &&
-                  expense.date.month == now.month;
+              // Uses the dashboard month!
+              matchesTime = expense.date.year == referenceDate.year && expense.date.month == referenceDate.month;
             } else if (_selectedTimeFilter == 'Last Month') {
-              final lastMonth = now.month == 1 ? 12 : now.month - 1;
-              final lastMonthYear = now.month == 1 ? now.year - 1 : now.year;
-              matchesTime =
-                  expense.date.year == lastMonthYear &&
-                  expense.date.month == lastMonth;
+              final lastMonth = referenceDate.month == 1 ? 12 : referenceDate.month - 1;
+              final lastMonthYear = referenceDate.month == 1 ? referenceDate.year - 1 : referenceDate.year;
+              matchesTime = expense.date.year == lastMonthYear && expense.date.month == lastMonth;
             }
 
             return matchesCategory && matchesSearch && matchesTime;
@@ -409,7 +438,7 @@ class _AllExpensesPageState extends State<AllExpensesPage> {
                         });
                       },
                       itemBuilder: (BuildContext context) {
-                        return _timeFilters.map((String choice) {
+                        return _dynamicTimeFilters.map((String choice) {
                           return PopupMenuItem<String>(
                             value: choice,
                             child: Text(
