@@ -6,7 +6,7 @@
 
 <!-- Hero Banner (Horizontal) -->
 <p align="center">
-  <img src="screenshots/intro_banner.jpg" width="850" alt="Smart Expense Introduction">
+  <img src="screenshots/intro_banner.jpeg" width="850" alt="Smart Expense Introduction">
 </p>
 
 <!-- Row 1: Core Flow -->
