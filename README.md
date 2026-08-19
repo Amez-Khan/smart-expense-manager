@@ -2,6 +2,13 @@
 
 **Smart Expense** is a premium, feature-rich mobile application built to help users seamlessly track their daily spending, manage monthly budgets, and gain financial clarity. Designed with a Pragmatic Feature-First Clean Architecture, it delivers a fast, secure, and highly personalized user experience comparable to top-tier FinTech apps.
 
+## 📸 Screenshots
+
+<p align="center">
+  <img src="screenshots/home.jpg" width="300" alt="Home Screen">
+  &nbsp;&nbsp;&nbsp;&nbsp;
+  <img src="screenshots/guide.jpg" width="300" alt="Guide Screen">
+</p>
 ---
 
 ## 🌟 Key Features
