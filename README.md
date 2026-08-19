@@ -11,20 +11,20 @@
 
 <!-- Row 1: Core Flow -->
 <p align="center">
-  <img src="screenshots/login.jpeg" width="250" alt="Secure Login & Auth">
+  <img src="assets/login.jpeg" width="250" alt="Secure Login & Auth">
   &nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="screenshots/dashboard.jpeg" width="250" alt="Live Budget Dashboard">
+  <img src="assets/dashboard.jpeg" width="250" alt="Live Budget Dashboard">
   &nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="screenshots/add_expense.jpeg" width="250" alt="Add Expense Sheet">
+  <img src="assets/add_expense.jpeg" width="250" alt="Add Expense Sheet">
 </p>
 
 <!-- Row 2: Features & Settings -->
 <p align="center">
-  <img src="screenshots/analytics.jpeg" width="250" alt="Visual Spending Insights">
+  <img src="assets/analytics.jpeg" width="250" alt="Visual Spending Insights">
   &nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="screenshots/export.jpeg" width="250" alt="Filter & PDF Export">
+  <img src="assets/export.jpeg" width="250" alt="Filter & PDF Export">
   &nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="screenshots/profile.jpeg" width="250" alt="Theme & Currency Settings">
+  <img src="assets/profile.jpeg" width="250" alt="Theme & Currency Settings">
 </p>
 ---
 
