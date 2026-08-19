@@ -4,10 +4,27 @@
 
 ## 📸 Screenshots
 
+<!-- Hero Banner (Horizontal) -->
 <p align="center">
-  <img src="screenshots/home.jpg" width="300" alt="Home Screen">
+  <img src="screenshots/intro_banner.png" width="850" alt="Smart Expense Introduction">
+</p>
+
+<!-- Row 1: Core Flow -->
+<p align="center">
+  <img src="screenshots/login.jpg" width="250" alt="Secure Login & Auth">
   &nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="screenshots/guide.jpg" width="300" alt="Guide Screen">
+  <img src="screenshots/dashboard.jpg" width="250" alt="Live Budget Dashboard">
+  &nbsp;&nbsp;&nbsp;&nbsp;
+  <img src="screenshots/add_expense.jpg" width="250" alt="Add Expense Sheet">
+</p>
+
+<!-- Row 2: Features & Settings -->
+<p align="center">
+  <img src="screenshots/analytics.jpg" width="250" alt="Visual Spending Insights">
+  &nbsp;&nbsp;&nbsp;&nbsp;
+  <img src="screenshots/export.jpg" width="250" alt="Filter & PDF Export">
+  &nbsp;&nbsp;&nbsp;&nbsp;
+  <img src="screenshots/profile.jpg" width="250" alt="Theme & Currency Settings">
 </p>
 ---
 
